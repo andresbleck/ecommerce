@@ -1,17 +1,20 @@
-const CATEGORIES = [
+import { useState, useCallback, useEffect } from 'react';
+import { sb } from './lib/supabase';
+
+export const CATEGORIES = [
   { id: 'mates', label: 'Mates', desc: 'Calabaza, algarrobo, cuero' },
   { id: 'bombillas', label: 'Bombillas', desc: 'Alpaca, acero, pico de rey' },
   { id: 'termos', label: 'Termos', desc: 'Conservan el agua, conservan la ronda' },
 ];
 
-const formatPrice = (n) =>
+export const formatPrice = (n) =>
   '$' + (n || 0).toLocaleString('es-AR', { minimumFractionDigits: 0 });
 
-function useProducts() {
-  const [products, setProducts] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
+export function useProducts() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const reload = React.useCallback(async () => {
+  const reload = useCallback(async () => {
     setLoading(true);
     const { data, error } = await sb.from('products').select('*').order('created_at', { ascending: false });
     if (!error) {
@@ -35,10 +38,6 @@ function useProducts() {
     setLoading(false);
   }, []);
 
-  React.useEffect(() => { reload(); }, [reload]);
+  useEffect(() => { reload(); }, [reload]);
   return { products, loading, reload };
 }
-
-window.CATEGORIES = CATEGORIES;
-window.formatPrice = formatPrice;
-window.useProducts = useProducts;

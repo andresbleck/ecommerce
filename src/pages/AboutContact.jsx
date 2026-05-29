@@ -1,14 +1,14 @@
-// About (Nosotros) and Contact pages
-function AboutPage() {
+import { useState } from 'react';
+import { Section, Eyebrow, Link } from '../components/Components';
+
+export function AboutPage() {
   return (
     <>
       <Section tone="dark" className="lg-about-hero">
         <div className="lg-eyebrow lg-eyebrow--light">
           <span className="lg-eyebrow__line"/>El origen<span className="lg-eyebrow__line"/>
         </div>
-        <h1 className="lg-h1">
-          Una <em>gauchada</em> es ayudar<br/>sin que te lo pidan.
-        </h1>
+        <h1 className="lg-h1">Una <em>gauchada</em> es ayudar<br/>sin que te lo pidan.</h1>
         <p className="lg-lead lg-lead--center">
           Así arrancó esto: con un mate bien cebado para un amigo en un mal día. Hoy somos un emprendimiento chico en el norte argentino, obsesionados con hacer las cosas como se hacían antes.
         </p>
@@ -17,8 +17,7 @@ function AboutPage() {
       <Section tone="cream">
         <div className="lg-story lg-story--reverse">
           <div className="lg-story__img">
-             <img src="./images/op3.jpg" alt="Foto de mate" style={{width:"100%", height:"100%", objectFit:"cover"}} />
-
+            <img src="/images/op3.jpg" alt="Foto de mate" style={{width:'100%', height:'100%', objectFit:'cover'}}/>
           </div>
           <div className="lg-story__copy">
             <Eyebrow>Cómo empezamos</Eyebrow>
@@ -61,22 +60,10 @@ function AboutPage() {
 
       <Section tone="dark">
         <div className="lg-numbers">
-          <div className="lg-number">
-            <div className="lg-number__n">2021</div>
-            <div className="lg-number__l">Empezamos en Tucuman</div>
-          </div>
-          <div className="lg-number">
-            <div className="lg-number__n">2</div>
-            <div className="lg-number__l">Jovenes estudiantes</div>
-          </div>
-          <div className="lg-number">
-            <div className="lg-number__n">+1.200</div>
-            <div className="lg-number__l">Mates en mesas argentinas</div>
-          </div>
-          <div className="lg-number">
-            <div className="lg-number__n">+4</div>
-            <div className="lg-number__l">Años de aprendizaje</div>
-          </div>
+          <div className="lg-number"><div className="lg-number__n">2021</div><div className="lg-number__l">Empezamos en Tucuman</div></div>
+          <div className="lg-number"><div className="lg-number__n">2</div><div className="lg-number__l">Jovenes estudiantes</div></div>
+          <div className="lg-number"><div className="lg-number__n">+1.200</div><div className="lg-number__l">Mates en mesas argentinas</div></div>
+          <div className="lg-number"><div className="lg-number__n">+4</div><div className="lg-number__l">Años de aprendizaje</div></div>
         </div>
       </Section>
 
@@ -94,12 +81,9 @@ function AboutPage() {
   );
 }
 
-// ──────────────────────────────────────────────────────────────
-const { useState: useState_ct } = React;
-
-function ContactPage() {
-  const [form, setForm] = useState_ct({ nombre: '', email: '', tema: 'consulta', mensaje: '' });
-  const [sent, setSent] = useState_ct(false);
+export function ContactPage() {
+  const [form, setForm] = useState({ nombre: '', email: '', tema: 'consulta', mensaje: '' });
+  const [sent, setSent] = useState(false);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   return (
@@ -124,12 +108,11 @@ function ContactPage() {
               </div>
               <div>
                 <div className="lg-channel__l">WhatsApp</div>
-                <div className="lg-channel__v">+54 9 3815699499 </div>
+                <div className="lg-channel__v">+54 9 3815699499</div>
                 <div className="lg-channel__s">Lun a Vie · 10 a 19h</div>
               </div>
               <div className="lg-channel__arrow">→</div>
             </a>
-
             <a href="https://instagram.com/lagauchada" target="_blank" className="lg-channel lg-channel--ig">
               <div className="lg-channel__icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -145,7 +128,6 @@ function ContactPage() {
               </div>
               <div className="lg-channel__arrow">→</div>
             </a>
-
             <div className="lg-channel lg-channel--info">
               <div className="lg-channel__icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -156,7 +138,6 @@ function ContactPage() {
                 <div className="lg-channel__s">Visitas con cita previa los sábados</div>
               </div>
             </div>
-
             <div className="lg-faq">
               <h3 className="lg-faq__h">Lo más preguntado</h3>
               <details><summary>¿Cuánto tarda el envío?</summary><p>De 2 a 5 días hábiles a todo el país por OCA o Andreani.</p></details>
@@ -165,7 +146,6 @@ function ContactPage() {
               <details><summary>¿Hacen piezas a medida?</summary><p>Sí. Si querés grabado o un mate único, contanos qué necesitás.</p></details>
             </div>
           </div>
-
           <div className="lg-contact__form">
             <h3 className="lg-form__h">O dejanos un mensaje</h3>
             {sent ? (
@@ -197,6 +177,3 @@ function ContactPage() {
     </>
   );
 }
-
-window.AboutPage = AboutPage;
-window.ContactPage = ContactPage;

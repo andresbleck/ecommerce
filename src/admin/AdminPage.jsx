@@ -1,11 +1,13 @@
-// Admin: Login con Supabase Auth + Dashboard con CRUD en Supabase
-const { useState: useState_a, useEffect: useEffect_a } = React;
+import { useState, useEffect } from 'react';
+import { sb } from '../lib/supabase';
+import { navigate, Link, ProductCard } from '../components/Components';
+import { useProducts, CATEGORIES, formatPrice } from '../data';
 
-function AdminPage() {
-  const [session, setSession] = useState_a(null);
-  const [checking, setChecking] = useState_a(true);
+export function AdminPage() {
+  const [session, setSession] = useState(null);
+  const [checking, setChecking] = useState(true);
 
-  useEffect_a(() => {
+  useEffect(() => {
     sb.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setChecking(false);
@@ -20,10 +22,10 @@ function AdminPage() {
 }
 
 function AdminLogin() {
-  const [email, setEmail] = useState_a('');
-  const [pass, setPass] = useState_a('');
-  const [err, setErr] = useState_a('');
-  const [loading, setLoading] = useState_a(false);
+  const [email, setEmail] = useState('');
+  const [pass, setPass] = useState('');
+  const [err, setErr] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -71,12 +73,18 @@ function AdminLogin() {
 }
 
 function AdminDashboard({ onLogout }) {
-  const [tab, setTab] = useState_a('productos');
+  const [tab, setTab] = useState('productos');
   const { products, loading, reload } = useProducts();
-  const [showForm, setShowForm] = useState_a(false);
-  const [editing, setEditing] = useState_a(null);
-  const [query, setQuery] = useState_a('');
-  const [catFilter, setCatFilter] = useState_a('all');
+  const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [query, setQuery] = useState('');
+  const [catFilter, setCatFilter] = useState('all');
+  const [ordersCount, setOrdersCount] = useState(null);
+
+  useEffect(() => {
+    sb.from('orders').select('id', { count: 'exact', head: true })
+      .then(({ count }) => setOrdersCount(count));
+  }, [tab]);
 
   const filtered = products.filter(p => {
     if (catFilter !== 'all' && p.category !== catFilter) return false;
@@ -87,18 +95,11 @@ function AdminDashboard({ onLogout }) {
   const saveProduct = async (data) => {
     const payload = {
       slug: data.slug || data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      name: data.name,
-      category: data.category,
-      price: Number(data.price),
-      stock: Number(data.stock),
-      short_description: data.long.slice(0, 120),
-      long_description: data.long,
-      badge: data.badge || null,
-      monogram: data.monogram,
-      accent_color: data.accent,
-      image_url: data.image_url || null,
-      image_url_2: data.image_url_2 || null,
-      image_url_3: data.image_url_3 || null,
+      name: data.name, category: data.category, price: Number(data.price),
+      stock: Number(data.stock), short_description: data.long.slice(0, 120),
+      long_description: data.long, badge: data.badge || null, monogram: data.monogram,
+      accent_color: data.accent, image_url: data.image_url || null,
+      image_url_2: data.image_url_2 || null, image_url_3: data.image_url_3 || null,
     };
     if (editing?._dbId) {
       const { error } = await sb.from('products').update(payload).eq('id', editing._dbId);
@@ -181,7 +182,7 @@ function AdminDashboard({ onLogout }) {
               <div className="lg-stat"><div className="lg-stat__l">Productos</div><div className="lg-stat__n">{stats.total}</div><div className="lg-stat__d">en la base</div></div>
               <div className="lg-stat"><div className="lg-stat__l">Stock total</div><div className="lg-stat__n">{stats.stock}</div><div className="lg-stat__d">unidades</div></div>
               <div className="lg-stat"><div className="lg-stat__l">Valor inventario</div><div className="lg-stat__n">{formatPrice(stats.valor)}</div><div className="lg-stat__d">a precio de venta</div></div>
-              <div className="lg-stat"><div className="lg-stat__l">Pedidos del mes</div><div className="lg-stat__n">—</div><div className="lg-stat__d">ver tabla orders</div></div>
+              <div className="lg-stat"><div className="lg-stat__l">Total de pedidos</div><div className="lg-stat__n">{ordersCount ?? '—'}</div><div className="lg-stat__d">histórico</div></div>
             </div>
             <div className="lg-admin__cards">
               <div className="lg-acard">
@@ -222,26 +223,19 @@ function AdminDashboard({ onLogout }) {
                 + Nuevo producto
               </button>
             </div>
-
             {loading ? (
               <div className="lg-empty"><p>Cargando productos...</p></div>
             ) : (
               <div className="lg-table-wrap">
                 <table className="lg-table">
-                  <thead>
-                    <tr>
-                      <th>Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th><th></th>
-                    </tr>
-                  </thead>
+                  <thead><tr><th>Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th><th></th></tr></thead>
                   <tbody>
                     {filtered.map(p => (
                       <tr key={p.id}>
                         <td>
                           <div className="lg-table__prod">
                             <div className="lg-drawer__thumb" style={{ background: p.accent, overflow: 'hidden', padding: 0 }}>
-                              {p.image_url
-                                ? <img src={p.image_url} alt={p.name} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                                : <span>{p.monogram}</span>}
+                              {p.image_url ? <img src={p.image_url} alt={p.name} style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <span>{p.monogram}</span>}
                             </div>
                             <div>
                               <div className="lg-table__name">{p.name}</div>
@@ -282,24 +276,18 @@ function AdminDashboard({ onLogout }) {
 }
 
 function AdminOrdersList() {
-  const [orders, setOrders] = useState_a([]);
-
-  useEffect_a(() => {
+  const [orders, setOrders] = useState([]);
+  useEffect(() => {
     sb.from('orders').select('order_number, customer_name, total, status, created_at')
       .order('created_at', { ascending: false }).limit(4)
       .then(({ data }) => setOrders(data || []));
   }, []);
-
   if (orders.length === 0) return <p style={{color:'var(--ink-mute)', fontSize:14}}>No hay pedidos todavía.</p>;
-
   return (
     <ul className="lg-orders">
       {orders.map(o => (
         <li key={o.order_number} className="lg-order">
-          <div>
-            <div className="lg-order__id">#{o.order_number}</div>
-            <div className="lg-order__name">{o.customer_name}</div>
-          </div>
+          <div><div className="lg-order__id">#{o.order_number}</div><div className="lg-order__name">{o.customer_name}</div></div>
           <div className="lg-order__t">{formatPrice(o.total)}</div>
           <span className={'lg-tag lg-tag--' + o.status}>{o.status}</span>
         </li>
@@ -308,30 +296,79 @@ function AdminOrdersList() {
   );
 }
 
-function AdminOrdersTab() {
-  const [orders, setOrders] = useState_a([]);
-  const [loading, setLoading] = useState_a(true);
+const STATUS_LABELS = {
+  pending: 'Pendiente',
+  delivered: 'Entregado',
+  cancelled: 'Cancelado',
+};
 
-  useEffect_a(() => {
-    sb.from('orders').select('*').order('created_at', { ascending: false })
-      .then(({ data }) => { setOrders(data || []); setLoading(false); });
-  }, []);
+function AdminOrdersTab() {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(null);
+
+  const loadOrders = async () => {
+    const { data } = await sb.from('orders').select('*').order('created_at', { ascending: false });
+    setOrders(data || []);
+    setLoading(false);
+  };
+
+  useEffect(() => { loadOrders(); }, []);
+
+  const updateStatus = async (order, newStatus) => {
+    const prevStatus = order.status;
+    if (prevStatus === newStatus) return;
+    setUpdating(order.id);
+
+    const { error } = await sb.from('orders').update({ status: newStatus }).eq('id', order.id);
+    if (error) { alert('Error al actualizar: ' + error.message); setUpdating(null); return; }
+
+    const items = order.items || [];
+    if (items.length > 0) {
+      if (newStatus === 'delivered' && prevStatus !== 'delivered') {
+        for (const item of items) {
+          const { data: p } = await sb.from('products').select('id, stock').eq('slug', item.id).single();
+          if (p) await sb.from('products').update({ stock: Math.max(0, p.stock - item.qty) }).eq('id', p.id);
+        }
+      } else if (newStatus === 'cancelled' && prevStatus === 'delivered') {
+        for (const item of items) {
+          const { data: p } = await sb.from('products').select('id, stock').eq('slug', item.id).single();
+          if (p) await sb.from('products').update({ stock: p.stock + item.qty }).eq('id', p.id);
+        }
+      }
+    }
+
+    setUpdating(null);
+    await loadOrders();
+  };
+
+  const deleteOrder = async (order) => {
+    if (!confirm(`¿Seguro que querés eliminar el pedido #${order.order_number}?`)) return;
+    setUpdating(order.id);
+    const { error } = await sb.from('orders').delete().eq('id', order.id);
+    if (error) { alert('Error al eliminar: ' + error.message); }
+    setUpdating(null);
+    await loadOrders();
+  };
+
+  const togglePaid = async (order) => {
+    setUpdating(order.id);
+    const { error } = await sb.from('orders').update({ paid: !order.paid }).eq('id', order.id);
+    if (error) { alert('Error: ' + error.message); }
+    setUpdating(null);
+    await loadOrders();
+  };
 
   return (
     <div className="lg-admin__body">
       {loading ? (
         <div className="lg-empty"><p>Cargando pedidos...</p></div>
       ) : orders.length === 0 ? (
-        <div className="lg-empty lg-empty--admin">
-          <h3>Sin pedidos todavía</h3>
-          <p>Los pedidos de WhatsApp aparecerán acá cuando se completen.</p>
-        </div>
+        <div className="lg-empty lg-empty--admin"><h3>Sin pedidos todavía</h3><p>Los pedidos de WhatsApp aparecerán acá cuando se completen.</p></div>
       ) : (
         <div className="lg-table-wrap">
           <table className="lg-table">
-            <thead>
-              <tr><th>#</th><th>Cliente</th><th>Total</th><th>Entrega</th><th>Pago</th><th>Estado</th><th>Fecha</th></tr>
-            </thead>
+            <thead><tr><th>#</th><th>Cliente</th><th>Total</th><th>Entrega</th><th>Pago</th><th>Pagado</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>
             <tbody>
               {orders.map(o => (
                 <tr key={o.id}>
@@ -340,8 +377,38 @@ function AdminOrdersTab() {
                   <td>{formatPrice(o.total)}</td>
                   <td>{o.delivery_method}</td>
                   <td>{o.payment_method}</td>
-                  <td><span className={'lg-tag lg-tag--' + o.status}>{o.status}</span></td>
+                  <td>
+                    <button
+                      disabled={updating === o.id}
+                      onClick={() => togglePaid(o)}
+                      className={'lg-paid-btn' + (o.paid ? ' lg-paid-btn--yes' : '')}
+                    >
+                      {o.paid ? 'Sí' : 'No'}
+                    </button>
+                  </td>
+                  <td>
+                    <select
+                      value={o.status || 'pending'}
+                      disabled={updating === o.id}
+                      onChange={(e) => updateStatus(o, e.target.value)}
+                      className={'lg-status-select lg-status-select--' + (o.status || 'pending')}
+                    >
+                      {Object.entries(STATUS_LABELS).map(([val, label]) => (
+                        <option key={val} value={val}>{label}</option>
+                      ))}
+                    </select>
+                  </td>
                   <td style={{fontSize:12,color:'var(--ink-mute)'}}>{new Date(o.created_at).toLocaleDateString('es-AR')}</td>
+                  <td>
+                    <button
+                      className="lg-iconbtn"
+                      disabled={updating === o.id}
+                      onClick={() => deleteOrder(o)}
+                      title="Eliminar pedido"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -355,20 +422,17 @@ function AdminOrdersTab() {
 function EmptyTab({ label }) {
   return (
     <div className="lg-admin__body">
-      <div className="lg-empty lg-empty--admin">
-        <h3>Sección {label}</h3>
-        <p>Próximamente.</p>
-      </div>
+      <div className="lg-empty lg-empty--admin"><h3>Sección {label}</h3><p>Próximamente.</p></div>
     </div>
   );
 }
 
 function ProductForm({ initial, onSave, onClose }) {
-  const [data, setData] = useState_a(initial || {
+  const [data, setData] = useState(initial || {
     name: '', category: 'mates', price: 0, short: '', long: '',
     stock: 0, monogram: 'XX', accent: '#8a5a2e', badge: '', image_url: '', image_url_2: '', image_url_3: '',
   });
-  const [uploading, setUploading] = useState_a(null);
+  const [uploading, setUploading] = useState(null);
   const set = (k, v) => setData(d => ({ ...d, [k]: v }));
 
   const handleImageUpload = async (file, key) => {
@@ -454,5 +518,3 @@ function AdminIcon({ name }) {
   };
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">{icons[name]}</svg>;
 }
-
-window.AdminPage = AdminPage;

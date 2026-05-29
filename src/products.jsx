@@ -1,19 +1,19 @@
-// Products listing page + Product detail page
-const { useState: useState_p, useEffect: useEffect_p, useMemo } = React;
+import { useState, useEffect, useMemo } from 'react';
+import { useRoute, Link, Section, Eyebrow, ProductCard, ProductImage, useCart } from './components/Components';
+import { useProducts, CATEGORIES, formatPrice } from './data';
 
-function ProductsPage() {
+export function ProductsPage() {
   const route = useRoute();
   const qs = route.includes('?') ? route.split('?')[1] : '';
   const params = new URLSearchParams(qs);
   const initialCat = params.get('cat') || 'all';
 
-  const [cat, setCat] = useState_p(initialCat);
-  const [sort, setSort] = useState_p('featured');
-  const [search, setSearch] = useState_p('');
-
+  const [cat, setCat] = useState(initialCat);
+  const [sort, setSort] = useState('featured');
+  const [search, setSearch] = useState('');
   const { products, loading } = useProducts();
 
-  useEffect_p(() => { setCat(initialCat); }, [initialCat]);
+  useEffect(() => { setCat(initialCat); }, [initialCat]);
 
   const filtered = useMemo(() => {
     let list = products;
@@ -61,7 +61,6 @@ function ProductsPage() {
             </select>
           </div>
         </div>
-
         {loading ? (
           <div className="lg-empty"><p>Cargando productos...</p></div>
         ) : filtered.length === 0 ? (
@@ -80,33 +79,24 @@ function ProductsPage() {
   );
 }
 
-// ──────────────────────────────────────────────────────────────
-function ProductDetailPage({ id }) {
+export function ProductDetailPage({ id }) {
   const cart = useCart();
-  const [qty, setQty] = useState_p(1);
-  const [added, setAdded] = useState_p(false);
-  const [activeImg, setActiveImg] = useState_p(0);
+  const [qty, setQty] = useState(1);
+  const [added, setAdded] = useState(false);
+  const [activeImg, setActiveImg] = useState(0);
   const { products, loading } = useProducts();
   const p = products.find(x => x.id === id);
 
-  if (loading) {
-    return (
-      <Section tone="cream">
-        <div className="lg-empty"><p>Cargando...</p></div>
-      </Section>
-    );
-  }
+  if (loading) return <Section tone="cream"><div className="lg-empty"><p>Cargando...</p></div></Section>;
 
-  if (!p) {
-    return (
-      <Section tone="cream">
-        <div className="lg-empty">
-          <h3>Producto no encontrado</h3>
-          <Link to="/productos" className="lg-btn lg-btn--dark">Volver al catálogo</Link>
-        </div>
-      </Section>
-    );
-  }
+  if (!p) return (
+    <Section tone="cream">
+      <div className="lg-empty">
+        <h3>Producto no encontrado</h3>
+        <Link to="/productos" className="lg-btn lg-btn--dark">Volver al catálogo</Link>
+      </div>
+    </Section>
+  );
 
   const related = products.filter(x => x.category === p.category && x.id !== p.id).slice(0, 3);
   const images = [p.image_url, p.image_url_2, p.image_url_3].filter(Boolean);
@@ -115,15 +105,11 @@ function ProductDetailPage({ id }) {
     <>
       <Section tone="cream" className="lg-pd-sec">
         <div className="lg-crumbs">
-          <Link to="/">Inicio</Link>
-          <span>/</span>
-          <Link to="/productos">Productos</Link>
-          <span>/</span>
-          <Link to={`/productos?cat=${p.category}`}>{p.category}</Link>
-          <span>/</span>
+          <Link to="/">Inicio</Link><span>/</span>
+          <Link to="/productos">Productos</Link><span>/</span>
+          <Link to={`/productos?cat=${p.category}`}>{p.category}</Link><span>/</span>
           <span className="is-current">{p.name}</span>
         </div>
-
         <div className="lg-pd">
           <div className="lg-pd__gallery">
             <div className="lg-pd__main">
@@ -140,13 +126,11 @@ function ProductDetailPage({ id }) {
               </div>
             )}
           </div>
-
           <div className="lg-pd__info">
             <div className="lg-pd__cat">{p.category}</div>
             <h1 className="lg-pd__name">{p.name}</h1>
             <div className="lg-pd__price">{formatPrice(p.price)}</div>
             <p className="lg-pd__desc">{p.long}</p>
-
             <div className="lg-pd__feats">
               <div className="lg-pd__feat">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 7h13l3 4v6h-3M16 17H8m-5 0h2"/><circle cx="6" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
@@ -157,7 +141,6 @@ function ProductDetailPage({ id }) {
                 <span>Cambios por defecto de fábrica</span>
               </div>
             </div>
-
             <div className="lg-pd__buy">
               <div className="lg-qty lg-qty--big">
                 <button onClick={() => setQty(q => Math.max(1, q - 1))}>−</button>
@@ -168,11 +151,9 @@ function ProductDetailPage({ id }) {
                 {added ? '✓ Sumado' : 'Sumar al carrito'}
               </button>
             </div>
-
             <div className="lg-pd__stock">
               <span className="lg-dot lg-dot--ok"/> {p.stock} disponibles
             </div>
-
             {p.category === 'mates' && (
               <Link to="/curar-mate" className="lg-pd__guide">
                 <div className="lg-pd__guide-icon">
@@ -188,7 +169,6 @@ function ProductDetailPage({ id }) {
           </div>
         </div>
       </Section>
-
       {related.length > 0 && (
         <Section tone="dark">
           <div className="lg-fh">
@@ -208,6 +188,3 @@ function ProductDetailPage({ id }) {
     </>
   );
 }
-
-window.ProductsPage = ProductsPage;
-window.ProductDetailPage = ProductDetailPage;

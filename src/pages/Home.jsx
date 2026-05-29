@@ -1,26 +1,26 @@
-// Home page with 3 Hero variations (controlled by Tweaks)
-function HomePage({ heroVariant = 'editorial' }) {
+import { useProducts, CATEGORIES, formatPrice } from '../data';
+import { Link, Section, Eyebrow, ProductCard, useCart } from '../components/Components';
+
+export function HomePage({ heroVariant = 'editorial' }) {
   const { products } = useProducts();
-  const featured = products.filter(p => ['mate-imperial', 'mate-ranchero', 'bombilla-pico-loro', 'termo-media-manija'].includes(p.id));
+  const recent = products.slice(0, 4);
   return (
     <>
       {heroVariant === 'editorial' && <HeroEditorial/>}
       {heroVariant === 'split' && <HeroSplit/>}
       {heroVariant === 'fullbleed' && <HeroFullbleed/>}
 
-      {/* Featured products */}
       <section className="lg-sec" style={{position:'relative', overflow:'hidden', color:'var(--cream)'}}>
-        <img src="./images/destacados.jpg" alt="" aria-hidden="true" style={{
+        <img src="/images/destacados.jpg" alt="" aria-hidden="true" style={{
           position:'absolute', inset:0, width:'100%', height:'100%',
-          objectFit:'cover', filter:'blur(6px)', transform:'scale(1.05)',
-          zIndex:0
+          objectFit:'cover', filter:'blur(6px)', transform:'scale(1.05)', zIndex:0
         }}/>
         <div style={{position:'absolute', inset:0, background:'rgba(22,30,21,0.72)', zIndex:1}}/>
         <div className="lg-sec__inner" style={{position:'relative', zIndex:2}}>
           <div className="lg-fh">
             <div>
-              <Eyebrow light>Lo más buscado</Eyebrow>
-              <h2 className="lg-h2 lg-h2--light" style={{color:'var(--cream)'}}>Productos destacados</h2>
+              <Eyebrow>Últimos en llegar</Eyebrow>
+              <h2 className="lg-h2 lg-h2--light" style={{color:'var(--cream)'}}>Recién ingresados</h2>
             </div>
             <Link to="/productos" className="lg-link-arrow lg-link-arrow--light">
               Ver todo
@@ -28,12 +28,11 @@ function HomePage({ heroVariant = 'editorial' }) {
             </Link>
           </div>
           <div className="lg-grid lg-grid--4">
-            {featured.map(p => <ProductCard key={p.id} p={p}/>)}
+            {recent.map(p => <GlassCard key={p.id} p={p}/>)}
           </div>
         </div>
       </section>
 
-      {/* Categories */}
       <Section tone="dark">
         <div className="lg-cats">
           {CATEGORIES.map((c, i) => (
@@ -47,7 +46,6 @@ function HomePage({ heroVariant = 'editorial' }) {
         </div>
       </Section>
 
-      {/* Story strip */}
       <Section tone="cream">
         <div className="lg-story">
           <div className="lg-story__copy">
@@ -57,8 +55,7 @@ function HomePage({ heroVariant = 'editorial' }) {
             <Link to="/nosotros" className="lg-btn lg-btn--dark">Conocé el taller</Link>
           </div>
           <div className="lg-story__img">
-            <img src="images/antes.jpg" alt="Foto de mate" style={{width:"100%", height:"100%", objectFit:"cover"}} />
-
+            <img src="/images/antes.jpg" alt="Foto de mate" style={{width:'100%', height:'100%', objectFit:'cover'}}/>
             <div className="lg-story__cap">
               <span className="lg-caveat">"Del campo a tu mesa"</span>
             </div>
@@ -69,7 +66,6 @@ function HomePage({ heroVariant = 'editorial' }) {
   );
 }
 
-// ───── Hero A: Editorial (dark, asymmetric, ornamental serif)
 function HeroEditorial() {
   return (
     <section className="lg-hero lg-hero--editorial">
@@ -89,28 +85,15 @@ function HeroEditorial() {
             Mates, bombillas y termos hechos a mano. Piezas pensadas para durar décadas, no temporadas.
           </p>
           <div className="lg-hero__cta">
-            <Link to="/productos" className="lg-btn lg-btn--gold">Ver la colección</Link>
+            <Link to="/productos" className="lg-btn lg-btn--gold">Ver productos</Link>
             <Link to="/nosotros" className="lg-btn lg-btn--ghost-light">Nuestra historia</Link>
           </div>
-          <div className="lg-hero__pills">
-            <span>Todos los medios de pago</span>
-            <span className="lg-sep"/>
-            <span>Envíos a todo el país</span>
-            <span className="lg-sep"/>
-            <span>Pago en cuotas</span>
-          </div>
+          
         </div>
         <div className="lg-hero__art">
           <div className="lg-hero__imgwrap">
-            <img src="./images/variante.jpg" alt="Foto de mate" style={{width:"100%", height:"100%", objectFit:"cover"}} />
-
+            <img src="/images/variante.jpg" alt="Foto de mate" style={{width:'100%', height:'100%', objectFit:'cover'}}/>
           </div>
-          {/* 
-          <div className="lg-hero__tag">
-            <div className="lg-hero__tag-l">Pieza del mes</div>
-            <div className="lg-hero__tag-n">Mate Imperial</div>
-            <div className="lg-hero__tag-p">{formatPrice(42000)}</div>
-          </div>*/}
           <svg className="lg-hero__orn" viewBox="0 0 200 200" aria-hidden="true">
             <circle cx="100" cy="100" r="98" fill="none" stroke="currentColor" strokeWidth=".6"/>
             <circle cx="100" cy="100" r="80" fill="none" stroke="currentColor" strokeWidth=".4" strokeDasharray="2 4"/>
@@ -121,7 +104,7 @@ function HeroEditorial() {
         <div className="lg-marquee__track">
           {Array(2).fill(0).map((_,i) => (
             <span key={i}>
-              <em>Mate Imperial</em> · Bombilla Pico de Loro · <em>Termo Media Manija</em> · Mate de Algarrobo · <em>Bombillón de Alpaca</em> · Mate Ranchero ·&nbsp;
+              <em> Envíos a todo el país en menos de 48 horas </em> ·  Aceptamos todos los medios de pago  · <em> Devoluciones gratis dentro de los 15 días por defectos de fábrica </em>  ·  10% de desceuento pagando en efectivo  · &nbsp;
             </span>
           ))}
         </div>
@@ -130,7 +113,6 @@ function HeroEditorial() {
   );
 }
 
-// ───── Hero B: Split (50/50, balanced, calmer)
 function HeroSplit() {
   return (
     <section className="lg-hero lg-hero--split">
@@ -150,7 +132,7 @@ function HeroSplit() {
           </div>
         </div>
         <div className="lg-hero-split__right">
-          <image-slot id="hero-split-img" placeholder="Foto principal (composición con mate, termo y bombilla)" shape="rounded" radius="2"></image-slot>
+          <image-slot id="hero-split-img" placeholder="Foto principal" shape="rounded" radius="2"></image-slot>
           <div className="lg-hero-split__stat">
             <div className="lg-hero-split__statn">+1.200</div>
             <div className="lg-hero-split__statl">mateadas felices</div>
@@ -161,12 +143,11 @@ function HeroSplit() {
   );
 }
 
-// ───── Hero C: Full-bleed image with centered overlay
 function HeroFullbleed() {
   return (
     <section className="lg-hero lg-hero--full">
       <div className="lg-hero-full__img">
-        <image-slot id="hero-full-img" placeholder="Foto a sangrada (paisaje, fogón, mate)" shape="rect"></image-slot>
+        <image-slot id="hero-full-img" placeholder="Foto a sangrada" shape="rect"></image-slot>
         <div className="lg-hero-full__veil"/>
       </div>
       <div className="lg-hero-full__copy">
@@ -187,4 +168,30 @@ function HeroFullbleed() {
   );
 }
 
-window.HomePage = HomePage;
+function GlassCard({ p }) {
+  const cart = useCart();
+  return (
+    <Link to={`/producto/${p.id}`} className="lg-glass-card">
+      <div className="lg-glass-card__media">
+        {p.image_url
+          ? <img src={p.image_url} alt={p.name} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+          : <div className="lg-pimg" style={{'--accent': p.accent}}>
+              <div className="lg-pimg__bg"/>
+              <div className="lg-pimg__mono">{p.monogram}</div>
+            </div>
+        }
+        {p.badge && <span className="lg-card__badge">{p.badge}</span>}
+      </div>
+      <div className="lg-glass-card__body">
+        <div className="lg-glass-card__cat">{p.category}</div>
+        <div className="lg-glass-card__name">{p.name}</div>
+        <div className="lg-glass-card__foot">
+          <span className="lg-glass-card__price">{formatPrice(p.price)}</span>
+          <button className="lg-glass-card__add" onClick={(e) => { e.preventDefault(); cart.add(p); }}>
+            Agregar
+          </button>
+        </div>
+      </div>
+    </Link>
+  );
+}

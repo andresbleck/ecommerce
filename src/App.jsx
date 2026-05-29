@@ -1,17 +1,23 @@
-// App: router resolution + Tweaks
-const { useState: useState_app } = React;
+import { useState } from 'react';
+import { useRoute, Header, Footer, CartDrawer, Link, navigate } from './components/Components';
+import { TweaksPanel, TweakSection, TweakRadio, useTweaks } from './components/TweaksPanel';
+import { HomePage } from './pages/Home';
+import { ProductsPage, ProductDetailPage } from './products';
+import { CartPage, CheckoutPage } from './pages/CartCheckout';
+import { AboutPage, ContactPage } from './pages/AboutContact';
+import { CurarPage } from './pages/Curar';
+import { AdminPage } from './admin/AdminPage';
 
-const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
-  "heroVariant": "editorial",
-  "showAdminHint": true
-}/*EDITMODE-END*/;
+const TWEAK_DEFAULTS = {
+  heroVariant: 'editorial',
+  showAdminHint: true,
+};
 
-function App() {
+export default function App() {
   const hash = useRoute();
   const path = hash.split('?')[0];
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
 
-  // Admin page = no header/footer
   if (path === '/admin') {
     return (
       <>
@@ -45,13 +51,15 @@ function App() {
 
 function NotFound() {
   return (
-    <Section tone="cream">
-      <div className="lg-empty">
-        <h2 className="lg-h2">404 · Por acá no va la cosa</h2>
-        <p className="lg-lead">No encontramos esta página. Volvé al inicio.</p>
-        <Link to="/" className="lg-btn lg-btn--gold">Volver al inicio</Link>
+    <section className="lg-sec lg-sec--cream">
+      <div className="lg-sec__inner">
+        <div className="lg-empty">
+          <h2 className="lg-h2">404 · Por acá no va la cosa</h2>
+          <p className="lg-lead">No encontramos esta página. Volvé al inicio.</p>
+          <Link to="/" className="lg-btn lg-btn--gold">Volver al inicio</Link>
+        </div>
       </div>
-    </Section>
+    </section>
   );
 }
 
@@ -69,24 +77,15 @@ function TweaksUI({ t, setTweak }) {
             { value: 'fullbleed', label: 'Full' },
           ]}
         />
-        <p style={{ fontSize: 12, opacity: .65, marginTop: 6 }}>Probá los 3 tratamientos del Hero. Cada uno tiene una personalidad distinta.</p>
       </TweakSection>
       <TweakSection label="Atajos">
-        <button className="lg-btn lg-btn--ghost-dark" style={{width:'100%'}} onClick={() => { navigate('/admin'); }}>
+        <button className="lg-btn lg-btn--ghost-dark" style={{width:'100%'}} onClick={() => navigate('/admin')}>
           → Ir al admin
         </button>
-        <button className="lg-btn lg-btn--ghost-dark" style={{width:'100%', marginTop:8}} onClick={() => { localStorage.removeItem('lg_cart'); localStorage.removeItem('lg_admin_products'); sessionStorage.removeItem('lg_admin'); location.reload(); }}>
-          Reset (carrito + productos)
+        <button className="lg-btn lg-btn--ghost-dark" style={{width:'100%', marginTop:8}} onClick={() => { localStorage.removeItem('lg_cart'); location.reload(); }}>
+          Reset (carrito)
         </button>
       </TweakSection>
     </TweaksPanel>
   );
 }
-
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <RouterProvider>
-    <CartProvider>
-      <App/>
-    </CartProvider>
-  </RouterProvider>
-);
