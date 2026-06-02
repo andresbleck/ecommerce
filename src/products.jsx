@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRoute, Link, Section, Eyebrow, ProductCard, ProductImage, useCart } from './components/Components';
-import { useProducts, CATEGORIES, formatPrice } from './data';
+import { useProducts, CATEGORIES, CATEGORY_GROUPS, formatPrice } from './data';
 
 export function ProductsPage() {
   const route = useRoute();
@@ -11,7 +11,15 @@ export function ProductsPage() {
   const [cat, setCat] = useState(initialCat);
   const [sort, setSort] = useState('featured');
   const [search, setSearch] = useState('');
+  const [openGroup, setOpenGroup] = useState(null);
+  const chipsRef = useRef(null);
   const { products, loading } = useProducts();
+
+  useEffect(() => {
+    const handler = (e) => { if (chipsRef.current && !chipsRef.current.contains(e.target)) setOpenGroup(null); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   useEffect(() => { setCat(initialCat); }, [initialCat]);
 
@@ -40,13 +48,37 @@ export function ProductsPage() {
 
       <Section tone="cream">
         <div className="lg-toolbar">
-          <div className="lg-chips">
-            <button className={'lg-chip' + (cat === 'all' ? ' is-active' : '')} onClick={() => setCat('all')}>Todos <span>{products.length}</span></button>
-            {CATEGORIES.map(c => (
-              <button key={c.id} className={'lg-chip' + (cat === c.id ? ' is-active' : '')} onClick={() => setCat(c.id)}>
-                {c.label} <span>{products.filter(p => p.category === c.id).length}</span>
-              </button>
-            ))}
+          <div className="lg-chips" ref={chipsRef}>
+            <button className={'lg-chip' + (cat === 'all' ? ' is-active' : '')} onClick={() => { setCat('all'); setOpenGroup(null); }}>
+              Todos <span>{products.length}</span>
+            </button>
+            {CATEGORY_GROUPS.map(g => {
+              const groupCats = CATEGORIES.filter(c => c.group === g.id);
+              const isGroupActive = groupCats.some(c => c.id === cat);
+              const isOpen = openGroup === g.id;
+              return (
+                <div key={g.id} className="lg-chip-group">
+                  <button
+                    className={'lg-chip lg-chip--group' + (isGroupActive ? ' is-active' : '') + (isOpen ? ' is-open' : '')}
+                    onClick={() => setOpenGroup(isOpen ? null : g.id)}
+                  >
+                    {g.label}
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{transition:'transform .2s', transform: isOpen ? 'rotate(180deg)' : 'none'}}><path d="M6 9l6 6 6-6"/></svg>
+                  </button>
+                  {isOpen && (
+                    <div className="lg-chip-dropdown">
+                      {groupCats.map(c => (
+                        <button key={c.id} className={'lg-chip-dropdown__item' + (cat === c.id ? ' is-active' : '')}
+                          onClick={() => { setCat(c.id); setOpenGroup(null); }}>
+                          {c.label}
+                          <span>{products.filter(p => p.category === c.id).length}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
           <div className="lg-toolbar__right">
             <div className="lg-search">

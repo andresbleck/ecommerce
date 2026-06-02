@@ -35,7 +35,7 @@ export function HomePage({ heroVariant = 'editorial' }) {
 
       <Section tone="dark">
         <div className="lg-cats">
-          {CATEGORIES.map((c, i) => (
+          {CATEGORIES.filter(c => c.home).map((c, i) => (
             <Link key={c.id} to={`/productos?cat=${c.id}`} className="lg-cat">
               <div className="lg-cat__num">0{i + 1}</div>
               <div className="lg-cat__title">{c.label}</div>
@@ -49,10 +49,10 @@ export function HomePage({ heroVariant = 'editorial' }) {
       <Section tone="cream">
         <div className="lg-story">
           <div className="lg-story__copy">
-            <Eyebrow>El oficio</Eyebrow>
-            <h2 className="lg-h2">Hecho como se hacía antes,<br/><em>pensado para hoy.</em></h2>
-            <p className="lg-lead">Trabajamos con artesanos del norte argentino. Cuero curtido al tanino, calabazas seleccionadas a mano, alpaca cincelada pieza por pieza. Nada de moldes, nada de apuro.</p>
-            <Link to="/nosotros" className="lg-btn lg-btn--dark">Conocé el taller</Link>
+            <Eyebrow>Nuestro lema</Eyebrow>
+            <h2 className="lg-h2">Mas que un mate, <br/><em>un momento para compartir</em></h2>
+            <p className="lg-lead">Cada mate forma parte de momentos que valen la pena recordar: una ronda compartida, un viaje, una reunión familiar o un regalo especial. Nuestra propuesta es acercarte productos que combinan tradición, calidad y estilo para acompañarte en esos momentos.</p>
+            <Link to="/nosotros" className="lg-btn lg-btn--dark">Conocénos</Link>
           </div>
           <div className="lg-story__img">
             <img src="/images/antes.jpg" alt="Foto de mate" style={{width:'100%', height:'100%', objectFit:'cover'}}/>
@@ -82,7 +82,7 @@ function HeroEditorial() {
             El apuro nunca <span className="lg-hero__under">fue mate.</span>
           </h1>
           <p className="lg-hero__lead">
-            Mates, bombillas y termos hechos a mano. Piezas pensadas para durar décadas, no temporadas.
+            Una selección de mates, bombillas y termos para quienes disfrutan cada momento.
           </p>
           <div className="lg-hero__cta">
             <Link to="/productos" className="lg-btn lg-btn--gold">Ver productos</Link>
@@ -92,21 +92,12 @@ function HeroEditorial() {
         </div>
         <div className="lg-hero__art">
           <div className="lg-hero__imgwrap">
-            <img src="/images/variante.jpg" alt="Foto de mate" style={{width:'100%', height:'100%', objectFit:'cover'}}/>
+            <img src="/images/mat.jpg" alt="Foto de mate" style={{width:'100%', height:'100%', objectFit:'cover'}}/>
           </div>
           <svg className="lg-hero__orn" viewBox="0 0 200 200" aria-hidden="true">
             <circle cx="100" cy="100" r="98" fill="none" stroke="currentColor" strokeWidth=".6"/>
             <circle cx="100" cy="100" r="80" fill="none" stroke="currentColor" strokeWidth=".4" strokeDasharray="2 4"/>
           </svg>
-        </div>
-      </div>
-      <div className="lg-marquee">
-        <div className="lg-marquee__track">
-          {Array(2).fill(0).map((_,i) => (
-            <span key={i}>
-              <em> Envíos a todo el país en menos de 48 horas </em> ·  Aceptamos todos los medios de pago  · <em> Devoluciones gratis dentro de los 15 días por defectos de fábrica </em>  ·  10% de desceuento pagando en efectivo  · &nbsp;
-            </span>
-          ))}
         </div>
       </div>
     </section>

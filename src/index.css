@@ -152,9 +152,12 @@ img { max-width: 100%; display: block; }
 .lg-hero__orn { position: absolute; top: 50%; left: 50%; width: 110%; height: 110%; transform: translate(-50%, -50%); color: var(--gold); opacity: .3; pointer-events: none; z-index: -1; animation: lg-rotate 60s linear infinite; }
 @keyframes lg-rotate { to { transform: translate(-50%, -50%) rotate(360deg); } }
 
-.lg-marquee { border-top: 1px solid rgba(200, 162, 90, .2); border-bottom: 1px solid rgba(200, 162, 90, .2); overflow: hidden; font-family: var(--serif); font-size: 32px; padding: 16px 0; color: rgba(243, 232, 210, .5); margin-top: 0; position: relative; z-index: 1; background: var(--green-darkest); white-space: nowrap; }
+.lg-marquee { border-top: 1px solid rgba(200, 162, 90, .2); border-bottom: 1px solid rgba(200, 162, 90, .2); overflow: hidden; font-family: var(--serif); font-size: 32px; padding: 16px 0; color: rgba(243, 232, 210, 0.399); margin-top: 0; position: relative; z-index: 1; background: var(--green-darkest); white-space: nowrap; }
+.lg-marquee--slim { font-size: 15px; padding: 10px 0; letter-spacing: .02em; }
+.lg-marquee--cream { background: #111; border-top-color: rgba(160,120,60,.2); border-bottom-color: rgba(160,120,60,.2); color: rgba(251, 251, 251, 0.693); }
+.lg-marquee--cream em { color: #dbd3c7; }
 .lg-marquee__track { display: inline-flex; animation: lg-marquee 40s linear infinite; }
-.lg-marquee em { color: var(--gold); font-style: italic; }
+.lg-marquee em { color: #e9a46fa6; font-style: italic; }
 @keyframes lg-marquee { to { transform: translateX(-50%); } }
 
 .lg-hero--split { background: var(--green-darkest); }
@@ -230,7 +233,14 @@ img { max-width: 100%; display: block; }
 .lg-products-hero { padding: 64px 32px 80px; text-align: center; }
 .lg-products-hero .lg-eyebrow { justify-content: center; }
 .lg-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 48px; }
-.lg-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.lg-chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.lg-chip-group { position: relative; }
+.lg-chip--group { display: inline-flex; align-items: center; gap: 6px; }
+.lg-chip-dropdown { position: absolute; top: calc(100% + 6px); left: 0; background: var(--paper); border: 1px solid var(--line); min-width: 180px; z-index: 20; box-shadow: var(--shadow); display: flex; flex-direction: column; animation: lg-fade .15s ease; }
+.lg-chip-dropdown__item { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; font-size: 14px; font-family: var(--sans); color: var(--ink); text-align: left; transition: background .15s; }
+.lg-chip-dropdown__item:hover { background: var(--cream-soft); }
+.lg-chip-dropdown__item.is-active { color: var(--gold-deep); font-weight: 600; background: var(--cream-soft); }
+.lg-chip-dropdown__item span { font-size: 12px; color: var(--ink-mute); margin-left: 12px; }
 .lg-chip { padding: 10px 16px; border: 1px solid var(--line); background: var(--cream); font-size: 13px; font-weight: 600; letter-spacing: .3px; text-transform: uppercase; transition: all .15s; display: inline-flex; align-items: center; gap: 8px; }
 .lg-chip span { background: var(--line); color: var(--ink-mute); padding: 1px 6px; border-radius: 8px; font-size: 11px; letter-spacing: 0; }
 .lg-chip:hover { border-color: var(--gold-deep); }
@@ -632,12 +642,22 @@ image-slot { --slot-placeholder-color: rgba(243, 232, 210, .55); --slot-border: 
   .lg-pd { grid-template-columns: 1fr; gap: 32px; }
   .lg-footer__top { grid-template-columns: 1fr 1fr; }
   .lg-admin { grid-template-columns: 1fr; }
-  .lg-admin__side { position: relative; height: auto; }
+  .lg-admin__side { position: relative; height: auto; flex-direction: row; align-items: center; padding: 0 16px; border-bottom: 1px solid rgba(200,162,90,.15); overflow-x: auto; }
+  .lg-admin__brand { display: none; }
+  .lg-admin__role { display: none; }
+  .lg-admin__nav { flex-direction: row; padding: 0; overflow-x: auto; gap: 0; flex: 1; }
+  .lg-admin__navlink { white-space: nowrap; padding: 16px 14px; margin-bottom: 0; border-radius: 0; border-bottom: 2px solid transparent; font-size: 13px; }
+  .lg-admin__navlink.is-active { background: transparent; border-bottom-color: var(--gold); }
+  .lg-admin__sidefoot { padding: 0 0 0 12px; border-top: none; border-left: 1px solid rgba(200,162,90,.15); white-space: nowrap; flex-shrink: 0; }
   .lg-admin__stats { grid-template-columns: repeat(2, 1fr); }
   .lg-admin__cards { grid-template-columns: 1fr; }
+  .lg-admin__top { padding: 20px 24px; }
+  .lg-admin__body { padding: 24px; }
   .lg-numbers { grid-template-columns: repeat(2, 1fr); }
   .lg-values { grid-template-columns: 1fr; }
   .lg-cats { grid-template-columns: 1fr; }
+  .lg-cat { border-left: 0; border-top: 1px solid rgba(200, 162, 90, .15); }
+  .lg-cat:first-child { border-top: 0; }
   .lg-cat { border-left: 0; border-top: 1px solid rgba(200, 162, 90, .15); }
   .lg-cat:first-child { border-top: 0; }
   .lg-curar-tabs { grid-template-columns: 1fr; }
@@ -663,9 +683,20 @@ image-slot { --slot-placeholder-color: rgba(243, 232, 210, .55); --slot-border: 
   .lg-pd__feats { grid-template-columns: 1fr; }
   .lg-pd__buy { flex-direction: column; }
   .lg-footer__top { grid-template-columns: 1fr; }
-  .lg-admin__top { padding: 16px 20px; }
-  .lg-admin__body { padding: 20px; }
+  .lg-admin__top { padding: 14px 16px; }
+  .lg-admin__body { padding: 16px; }
   .lg-admin__stats { grid-template-columns: 1fr; }
+  .lg-admin__h { font-size: 22px; }
+  .lg-admin__toolbar { flex-wrap: wrap; }
+  .lg-admin__toolbar .lg-search { flex: 1; min-width: 120px; }
+  .lg-admin__toolbar .lg-select { flex: 1; min-width: 120px; }
+  .lg-admin__toolbar .lg-btn { margin-left: 0; width: 100%; justify-content: center; }
+  .lg-search input { width: 100%; }
+  .lg-table th, .lg-table td { padding: 10px 12px; font-size: 13px; }
+  .lg-table__sub { display: none; }
+  .lg-modal-wrap { padding: 0; align-items: flex-end; }
+  .lg-modal__col { padding: 20px; }
+  .lg-modal__f { padding: 14px 20px; }
   .lg-numbers { grid-template-columns: 1fr; }
   .lg-cta-box { padding: 32px 24px; }
   .lg-steps .lg-step { padding: 0 8px; gap: 6px; }

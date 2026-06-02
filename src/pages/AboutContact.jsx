@@ -6,11 +6,11 @@ export function AboutPage() {
     <>
       <Section tone="dark" className="lg-about-hero">
         <div className="lg-eyebrow lg-eyebrow--light">
-          <span className="lg-eyebrow__line"/>El origen<span className="lg-eyebrow__line"/>
+          <span className="lg-eyebrow__line"/>Nuestro origen<span className="lg-eyebrow__line"/>
         </div>
         <h1 className="lg-h1">Una <em>gauchada</em> es ayudar<br/>sin que te lo pidan.</h1>
         <p className="lg-lead lg-lead--center">
-          Así arrancó esto: con un mate bien cebado para un amigo en un mal día. Hoy somos un emprendimiento chico en el norte argentino, obsesionados con hacer las cosas como se hacían antes.
+          Así arrancó esto: con un mate bien cebado para un amigo en un mal día.<br></br>Hoy somos un emprendimiento chico en el norte argentino, obsesionados con hacer las cosas como se hacían antes.
         </p>
       </Section>
 
@@ -21,12 +21,15 @@ export function AboutPage() {
           </div>
           <div className="lg-story__copy">
             <Eyebrow>Cómo empezamos</Eyebrow>
-            <h2 className="lg-h2">Tres manos, una mesa, mucha yerba.</h2>
+            <h2 className="lg-h2">Dos amigos, una idea y la misma pasión por el mate.</h2>
             <p className="lg-lead">
-              Empezamos en 2021 con la idea de hacer un emprendimiento, curando calabazas a la noche después del trabajo. Las primeras 50 piezas las vendimos a amigos y familia. Hoy trabajan con nosotros cinco artesanos del oficio y seguimos haciendo cada pieza a mano.
+              Nos conocimos durante nuestros años en la universidad, entre estudios, charlas y muchas rondas de mate, nació una amistad que con el tiempo se transformó en un proyecto compartido.
             </p>
             <p className="lg-lead">
-              No queremos ser una marca grande. Queremos hacer mates que duren décadas y que vos puedas pasarle a tus hijos.
+              Lo que nos une sigue siendo lo mismo desde el primer día: la pasión por el mate, los buenos momentos compartidos y el deseo de ofrecer productos que formen parte de la rutina de nuestros clientes.
+            </p>
+            <p className="lg-lead">
+              Hoy seguimos creciendo, sin perder la esencia con la que comenzamos , porque creemos que detrás de cada mate hay una historia, una charla y un momento que merece ser compartido.
             </p>
           </div>
         </div>
@@ -36,24 +39,24 @@ export function AboutPage() {
         <div className="lg-fh lg-fh--center">
           <div>
             <Eyebrow>Lo que creemos</Eyebrow>
-            <h2 className="lg-h2">Tres reglas, sin chamuyo.</h2>
+            <h2 className="lg-h2">Nuestros pilares.</h2>
           </div>
         </div>
         <div className="lg-values">
           <div className="lg-value">
             <div className="lg-value__num">01</div>
-            <h3 className="lg-value__h">Hecho a mano, siempre.</h3>
-            <p>Nada de máquinas, nada de moldes. Si no lo puede hacer una persona, no lo hacemos.</p>
+            <h3 className="lg-value__h">Tradición</h3>
+            <p>Valoramos la cultura matera y las costumbres que hacen del mate un momento para compartir.</p>
           </div>
           <div className="lg-value">
             <div className="lg-value__num">02</div>
-            <h3 className="lg-value__h">Materiales que envejecen lindo.</h3>
-            <p>Cuero curtido al tanino, alpaca, calabaza. Materiales que el tiempo mejora, no arruina.</p>
+            <h3 className="lg-value__h">Pasión</h3>
+            <p>Detrás de cada mate hay dedicación, experiencia y el compromiso de entregar un producto del que nos sintamos orgullosos.</p>
           </div>
           <div className="lg-value">
             <div className="lg-value__num">03</div>
-            <h3 className="lg-value__h">Precio justo, en serio.</h3>
-            <p>Pagamos bien al artesano y vendemos directo. Sin intermediarios, sin marketing inflado.</p>
+            <h3 className="lg-value__h">Calidad</h3>
+            <p>Vendemos mates pensados para acompañarte durante años y formar parte de tu rutina diaria.</p>
           </div>
         </div>
       </Section>
@@ -134,14 +137,14 @@ export function ContactPage() {
               </div>
               <div>
                 <div className="lg-channel__l">Taller</div>
-                <div className="lg-channel__v">Salta, Argentina</div>
+                <div className="lg-channel__v">Tucuman, Argentina</div>
                 <div className="lg-channel__s">Visitas con cita previa los sábados</div>
               </div>
             </div>
             <div className="lg-faq">
               <h3 className="lg-faq__h">Lo más preguntado</h3>
               <details><summary>¿Cuánto tarda el envío?</summary><p>De 2 a 5 días hábiles a todo el país por OCA o Andreani.</p></details>
-              <details><summary>¿Hacen envíos al exterior?</summary><p>Sí, escribinos por WhatsApp y te cotizamos.</p></details>
+              <details><summary>¿Realizan grabados personalizados?</summary><p>Sí, hacemos grabados personalizados en mates, bombillas, yerberos y termos. Escribinos por WhatsApp con tu diseño o texto y te asesoramos.</p></details>
               <details><summary>¿Puedo cambiar el producto?</summary><p>Tenés 15 días para cambios sin vueltas. Solo escribinos.</p></details>
               <details><summary>¿Hacen piezas a medida?</summary><p>Sí. Si querés grabado o un mate único, contanos qué necesitás.</p></details>
             </div>

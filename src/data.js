@@ -2,9 +2,19 @@ import { useState, useCallback, useEffect } from 'react';
 import { sb } from './lib/supabase';
 
 export const CATEGORIES = [
-  { id: 'mates', label: 'Mates', desc: 'Calabaza, algarrobo, cuero' },
-  { id: 'bombillas', label: 'Bombillas', desc: 'Alpaca, acero, pico de rey' },
-  { id: 'termos', label: 'Termos', desc: 'Conservan el agua, conservan la ronda' },
+  { id: 'mates',       label: 'Mates',       desc: 'Calabaza, algarrobo, cuero',               group: 'materos',      home: true },
+  { id: 'bombillas',   label: 'Bombillas',   desc: 'Alpaca, acero, pico de rey',               group: 'materos',      home: true },
+  { id: 'termos',      label: 'Termos',      desc: 'Conservan el agua, conservan la ronda',    group: 'materos',      home: true },
+  { id: 'materas',     label: 'Materas',     desc: 'Para llevar la ronda a cualquier lado',    group: 'materos' },
+  { id: 'accesorios',  label: 'Accesorios',  desc: 'Yerberos, picos, despolvilladores y más',  group: 'materos' },
+  { id: 'ponchos',     label: 'Ponchos',     desc: 'Lana merino, recado y tejido criollo',     group: 'indumentaria' },
+  { id: 'chalecos',    label: 'Chalecos',    desc: 'Chalecos criollos artesanales',            group: 'indumentaria' },
+  { id: 'boinas',      label: 'Boinas',      desc: 'Boinas tradicionales de cuero y paño',    group: 'indumentaria' },
+];
+
+export const CATEGORY_GROUPS = [
+  { id: 'materos',      label: 'Mundo matero' },
+  { id: 'indumentaria', label: 'Indumentaria' },
 ];
 
 export const formatPrice = (n) =>

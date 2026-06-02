@@ -40,6 +40,15 @@ export default function App() {
 
   return (
     <>
+      <div className="lg-marquee lg-marquee--slim lg-marquee--cream">
+        <div className="lg-marquee__track">
+          {Array(2).fill(0).map((_,i) => (
+            <span key={i}>
+              <em> Envíos a todo el país en menos de 48 horas </em> ·  Aceptamos todos los medios de pago  · <em> Devoluciones gratis dentro de los 15 días por defectos de fábrica </em>  ·  10% de descuento pagando en efectivo  · &nbsp;
+            </span>
+          ))}
+        </div>
+      </div>
       <Header/>
       <main className="lg-main">{page}</main>
       <Footer/>
