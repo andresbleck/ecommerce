@@ -4,19 +4,25 @@ import { Section, Eyebrow, Link } from '../components/Components';
 export function AboutPage() {
   return (
     <>
-      <Section tone="dark" className="lg-about-hero">
-        <div className="lg-eyebrow lg-eyebrow--light">
-          <span className="lg-eyebrow__line"/>Nuestro origen<span className="lg-eyebrow__line"/>
+      <section className="lg-sec lg-sec--dark lg-about-hero">
+        <div className="lg-about-hero__portada">
+          <img src="/images/op3.jpg" alt="" aria-hidden="true" style={{width:'100%',height:'100%',objectFit:'cover',objectPosition:'center'}}/>
+          <div className="lg-about-hero__veil"/>
         </div>
-        <h1 className="lg-h1">Una <em>gauchada</em> es ayudar<br/>sin que te lo pidan.</h1>
-        <p className="lg-lead lg-lead--center">
-          Así arrancó esto: con un mate bien cebado para un amigo en un mal día.<br></br>Hoy somos un emprendimiento chico en el norte argentino, obsesionados con hacer las cosas como se hacían antes.
-        </p>
-      </Section>
+        <div className="lg-sec__inner lg-about-hero__inner">
+          <div className="lg-eyebrow lg-eyebrow--light">
+            <span className="lg-eyebrow__line"/>Nuestro origen<span className="lg-eyebrow__line"/>
+          </div>
+          <h1 className="lg-h1">Una <em>gauchada</em> es ayudar<br/>sin que te lo pidan.</h1>
+          <p className="lg-lead lg-lead--center">
+            Así arrancó esto: con un mate bien cebado para un amigo en un mal día.<br/>Hoy somos un emprendimiento chico en el norte argentino, obsesionados con hacer las cosas como se hacían antes.
+          </p>
+        </div>
+      </section>
 
       <Section tone="cream">
         <div className="lg-story lg-story--reverse">
-          <div className="lg-story__img">
+          <div className="lg-story__img lg-story__img--hide-mobile">
             <img src="/images/op3.jpg" alt="Foto de mate" style={{width:'100%', height:'100%', objectFit:'cover'}}/>
           </div>
           <div className="lg-story__copy">
@@ -63,8 +69,8 @@ export function AboutPage() {
 
       <Section tone="dark">
         <div className="lg-numbers">
-          <div className="lg-number"><div className="lg-number__n">2021</div><div className="lg-number__l">Empezamos en Tucuman</div></div>
-          <div className="lg-number"><div className="lg-number__n">2</div><div className="lg-number__l">Jovenes estudiantes</div></div>
+          <div className="lg-number"><div className="lg-number__n">2022</div><div className="lg-number__l">Empezamos en Tucuman</div></div>
+          <div className="lg-number"><div className="lg-number__n">2</div><div className="lg-number__l">Jovenes amigos</div></div>
           <div className="lg-number"><div className="lg-number__n">+1.200</div><div className="lg-number__l">Mates en mesas argentinas</div></div>
           <div className="lg-number"><div className="lg-number__n">+4</div><div className="lg-number__l">Años de aprendizaje</div></div>
         </div>
@@ -116,7 +122,7 @@ export function ContactPage() {
               </div>
               <div className="lg-channel__arrow">→</div>
             </a>
-            <a href="https://instagram.com/lagauchada" target="_blank" className="lg-channel lg-channel--ig">
+            <a href="https://www.instagram.com/lagauchada.mates?igsh=cDQ1Z296NGJvd2dr" target="_blank" className="lg-channel lg-channel--ig">
               <div className="lg-channel__icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <rect x="3" y="3" width="18" height="18" rx="5"/>

@@ -71,6 +71,11 @@ function HeroEditorial() {
     <section className="lg-hero lg-hero--editorial">
       <div className="lg-hero__bg"/>
       <div className="lg-hero__grain"/>
+      {/* Solo mobile: imagen portada a sangre */}
+      <div className="lg-hero__portada">
+        <img src="/images/mat.jpg" alt="" aria-hidden="true" style={{width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top'}}/>
+        <div className="lg-hero__portada-veil"/>
+      </div>
       <div className="lg-hero__inner">
         <div className="lg-hero__copy">
           <div className="lg-hero__pre">
@@ -88,7 +93,6 @@ function HeroEditorial() {
             <Link to="/productos" className="lg-btn lg-btn--gold">Ver productos</Link>
             <Link to="/nosotros" className="lg-btn lg-btn--ghost-light">Nuestra historia</Link>
           </div>
-          
         </div>
         <div className="lg-hero__art">
           <div className="lg-hero__imgwrap">

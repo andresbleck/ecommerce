@@ -79,7 +79,7 @@ export function CurarPage() {
           <div>
             <Eyebrow>Mantenimiento</Eyebrow>
             <h2 className="lg-h2">El mate se cuida todos los días.</h2>
-            <p className="lg-lead">Después de cada ronda: vaciar la yerba, enjuagar con agua tibia, secar al aire. Una vez al mes, raspá el interior con la bombilla para sacar la película amarga.</p>
+            <p className="lg-lead">Después de cada ronda: vaciar la yerba y secar al aire. Una vez al mes, raspá el interior con la bombilla para sacar la película amarga.</p>
             <p className="lg-caveat" style={{color:'var(--gold-deep)'}}>"Un mate bien cuidado dura una vida."</p>
           </div>
           <Link to="/productos" className="lg-btn lg-btn--dark lg-btn--big">Ver mates</Link>
@@ -111,7 +111,7 @@ function CuradoCalabaza() {
       <CuradoStep n="01" titulo="Llenalo de yerba usada">
         <p>Llená el mate hasta el borde con yerba <em>ya usada</em>. Si no tenés, podés usar yerba nueva, pero con la usada queda mejor.</p>
         <p>Por arriba, sumale agua caliente (no hirviendo, 70–80°C) hasta que la yerba quede sumergida.</p>
-        <div className="lg-step-tip"><strong>Tip del taller:</strong> Mientras se cura, podés ir cebando ahí mismo despacito.</div>
+        
       </CuradoStep>
       <CuradoStep n="02" titulo="Esperá 24 horas">
         <p>Dejalo reposar tapado con un repasador limpio. Al otro día vaciá toda la yerba y, con el filo de una cuchara, <strong>raspá suavemente las paredes internas</strong>.</p>
@@ -121,8 +121,8 @@ function CuradoCalabaza() {
         <p>Una tercera vez para terminar. En total son <strong>tres ciclos de 24 horas</strong>.</p>
       </CuradoStep>
       <CuradoStep n="04" titulo="Listo para mateadas">
-        <p>Enjuagalo bien con agua caliente, dejalo secar boca abajo sobre un repasador, y ya está.</p>
-        <div className="lg-step-tip"><strong>Importante:</strong> Los primeros 10 mates, cambiá el agua del termo varias veces.</div>
+        <p> Dejalo secar bien y una vez seco, ya esta, podes usar tu mate de calabaza!</p>
+        
       </CuradoStep>
     </div>
   );

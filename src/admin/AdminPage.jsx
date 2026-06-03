@@ -122,11 +122,9 @@ function AdminDashboard({ onLogout }) {
 
   const stats = {
     total: products.length,
-    mates: products.filter(p => p.category === 'mates').length,
-    bombillas: products.filter(p => p.category === 'bombillas').length,
-    termos: products.filter(p => p.category === 'termos').length,
     valor: products.reduce((s, p) => s + p.price * (p.stock || 0), 0),
     stock: products.reduce((s, p) => s + (p.stock || 0), 0),
+    ...Object.fromEntries(CATEGORIES.map(c => [c.id, products.filter(p => p.category === c.id).length])),
   };
 
   return (
@@ -228,7 +226,7 @@ function AdminDashboard({ onLogout }) {
             ) : (
               <div className="lg-table-wrap">
                 <table className="lg-table">
-                  <thead><tr><th>Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th><th></th></tr></thead>
+                  <thead><tr><th>Producto</th><th>Categoría</th><th>Precio</th><th className="lg-prod-col-stock">Stock</th><th></th></tr></thead>
                   <tbody>
                     {filtered.map(p => (
                       <tr key={p.id}>
@@ -245,7 +243,7 @@ function AdminDashboard({ onLogout }) {
                         </td>
                         <td><span className="lg-tag lg-tag--cat">{p.category}</span></td>
                         <td><strong>{formatPrice(p.price)}</strong></td>
-                        <td>{p.stock}</td>
+                        <td className="lg-prod-col-stock">{p.stock}</td>
                         <td>
                           <div className="lg-row-actions">
                             <button onClick={() => { setEditing(p); setShowForm(true); }} title="Editar">
@@ -368,15 +366,15 @@ function AdminOrdersTab() {
       ) : (
         <div className="lg-table-wrap">
           <table className="lg-table">
-            <thead><tr><th>#</th><th>Cliente</th><th>Total</th><th>Entrega</th><th>Pago</th><th>Pagado</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>
+            <thead><tr><th>#</th><th>Cliente</th><th>Total</th><th className="lg-orders-col-delivery">Entrega</th><th className="lg-orders-col-payment">Pago</th><th>Pagado</th><th>Estado</th><th className="lg-orders-col-date">Fecha</th><th></th></tr></thead>
             <tbody>
               {orders.map(o => (
                 <tr key={o.id}>
                   <td><strong>{o.order_number}</strong></td>
                   <td>{o.customer_name}</td>
                   <td>{formatPrice(o.total)}</td>
-                  <td>{o.delivery_method}</td>
-                  <td>{o.payment_method}</td>
+                  <td className="lg-orders-col-delivery">{o.delivery_method}</td>
+                  <td className="lg-orders-col-payment">{o.payment_method}</td>
                   <td>
                     <button
                       disabled={updating === o.id}
@@ -398,7 +396,7 @@ function AdminOrdersTab() {
                       ))}
                     </select>
                   </td>
-                  <td style={{fontSize:12,color:'var(--ink-mute)'}}>{new Date(o.created_at).toLocaleDateString('es-AR')}</td>
+                  <td className="lg-orders-col-date" style={{fontSize:12,color:'var(--ink-mute)'}}>{new Date(o.created_at).toLocaleDateString('es-AR')}</td>
                   <td>
                     <button
                       className="lg-iconbtn"
@@ -491,7 +489,7 @@ function ProductForm({ initial, onSave, onClose }) {
                 </label>
               ))}
             </div>
-            <div className="lg-modal__col">
+            <div className="lg-modal__col lg-modal__col--preview">
               <div className="lg-modal__preview-l">Vista previa</div>
               <div className="lg-modal__preview">
                 <ProductCard p={{...data, id: 'preview'}}/>
