@@ -7,6 +7,7 @@ import { CartPage, CheckoutPage } from './pages/CartCheckout';
 import { AboutPage, ContactPage } from './pages/AboutContact';
 import { CurarPage } from './pages/Curar';
 import { AdminPage } from './admin/AdminPage';
+import { MateChat } from './components/MateChat';
 
 const TWEAK_DEFAULTS = {
   heroVariant: 'editorial',
@@ -53,6 +54,7 @@ export default function App() {
       <main className="lg-main">{page}</main>
       <Footer/>
       <CartDrawer/>
+      <MateChat/>
       <TweaksUI t={t} setTweak={setTweak}/>
     </>
   );

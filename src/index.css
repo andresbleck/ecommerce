@@ -741,3 +741,59 @@ image-slot { --slot-placeholder-color: rgba(243, 232, 210, .55); --slot-border: 
   .lg-curar-meta { flex-direction: column; gap: 6px; }
   .lg-curar-meta .lg-sep { display: none; }
 }
+
+/* ---------- Chat n8n (burbuja del mate) ---------- */
+.lg-chat__bubble {
+  position: fixed; right: 24px; bottom: 24px; z-index: 90;
+  width: 64px; height: 64px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--green-dark); color: var(--gold);
+  border: 2px solid var(--gold);
+  box-shadow: var(--shadow-lg);
+  transition: transform .2s ease, background .2s ease;
+}
+.lg-chat__bubble:hover { transform: scale(1.07); }
+.lg-chat__bubble--open { background: var(--green-darkest); }
+
+.lg-chat__panel {
+  position: fixed; right: 24px; bottom: 100px; z-index: 90;
+  width: 380px; height: 560px;
+  max-height: calc(100vh - 140px);
+  border-radius: 16px; overflow: hidden;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-lg);
+  transition: opacity .2s ease, transform .2s ease;
+
+  --chat--color-primary: var(--wood);
+  --chat--color-primary-shade-50: var(--wood-mid);
+  --chat--color-primary-shade-100: var(--wood-light);
+  --chat--color-secondary: var(--gold-deep);
+  --chat--color-secondary-shade-50: var(--gold);
+  --chat--color-white: var(--paper);
+  --chat--color-light: var(--cream-soft);
+  --chat--color-dark: var(--ink);
+  --chat--font-family: var(--sans);
+  --chat--header--background: var(--green-dark);
+  --chat--header--color: var(--cream);
+  --chat--heading--font-size: 1.4em;
+  --chat--message--bot--background: var(--cream);
+  --chat--message--bot--color: var(--ink);
+  --chat--message--user--background: var(--wood);
+  --chat--message--user--color: var(--cream);
+}
+.lg-chat__panel--hidden { opacity: 0; transform: translateY(12px); pointer-events: none; visibility: hidden; }
+.lg-chat__body { width: 100%; height: 100%; }
+.lg-chat__body .n8n-chat { height: 100%; }
+.lg-chat__close {
+  position: absolute; top: 14px; right: 14px; z-index: 2;
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cream);
+}
+.lg-chat__close:hover { background: rgba(243, 232, 210, .12); }
+
+@media (max-width: 520px) {
+  .lg-chat__bubble { right: 16px; bottom: 16px; width: 56px; height: 56px; }
+  .lg-chat__panel { left: 12px; right: 12px; top: 12px; bottom: 84px; width: auto; height: auto; max-height: none; }
+}
