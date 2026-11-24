@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createChat } from '@n8n/chat';
 import '@n8n/chat/style.css';
+import { useRoute } from './Components';
 
 const WEBHOOK_URL = import.meta.env.VITE_N8N_CHAT_WEBHOOK_URL;
 
@@ -8,6 +9,9 @@ export function MateChat() {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
   const chatRef = useRef(null);
+  const route = useRoute().split('?')[0];
+  // En carrito y checkout la burbuja tapa precios y botones en móvil
+  const hideOnMobile = route === '/carrito' || route === '/checkout';
 
   // Montar el chat de n8n una sola vez dentro del panel
   useEffect(() => {
@@ -59,7 +63,7 @@ export function MateChat() {
         <div ref={containerRef} className="lg-chat__body"/>
       </div>
       <button
-        className={'lg-chat__bubble' + (open ? ' lg-chat__bubble--open' : '')}
+        className={'lg-chat__bubble' + (open ? ' lg-chat__bubble--open' : '') + (hideOnMobile && !open ? ' lg-chat__bubble--hide-mobile' : '')}
         onClick={() => setOpen(o => !o)}
         aria-label={open ? 'Cerrar chat' : 'Abrir chat'}
       >

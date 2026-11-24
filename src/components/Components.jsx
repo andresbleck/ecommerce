@@ -150,7 +150,7 @@ export function Footer() {
           <Link to="/contacto" className="lg-footer__l">Contacto</Link>
           <a className="lg-footer__l" href="#/contacto">Envíos</a>
         </div>
-        <div className="lg-footer__col">
+        <div className="lg-footer__col lg-footer__col--social">
           <h4 className="lg-footer__h">Redes sociales</h4>
           <div className="lg-footer__social-links">
             <a href="https://www.instagram.com/lagauchada.mates?igsh=cDQ1Z296NGJvd2dr" target="_blank" className="lg-footer__social-link" aria-label="Instagram">

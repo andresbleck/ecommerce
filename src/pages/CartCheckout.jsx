@@ -75,15 +75,18 @@ export function CartPage() {
                 <div className="lg-drawer__thumb lg-drawer__thumb--big" style={{ background: it.accent, overflow: 'hidden', padding: 0 }}>
                   {it.image_url ? <img src={it.image_url} alt={it.name} style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <span>{it.monogram}</span>}
                 </div>
-                <Link to={`/producto/${it.id}`} className="lg-cartrow__name">{it.name}</Link>
+                <div>
+                  <Link to={`/producto/${it.id}`} className="lg-cartrow__name">{it.name}</Link>
+                  <div className="lg-cartrow__unit">{formatPrice(it.price)} c/u</div>
+                </div>
               </div>
               <div className="lg-qty">
                 <button onClick={() => cart.setQty(it.id, it.qty - 1)}>−</button>
                 <span>{it.qty}</span>
                 <button onClick={() => cart.setQty(it.id, it.qty + 1)}>+</button>
               </div>
-              <span className="lg-cartrow__price">{formatPrice(it.price)}</span>
-              <span className="lg-cartrow__price"><strong>{formatPrice(it.price * it.qty)}</strong></span>
+              <span className="lg-cartrow__price lg-cartrow__price--unit">{formatPrice(it.price)}</span>
+              <span className="lg-cartrow__price lg-cartrow__price--sub"><strong>{formatPrice(it.price * it.qty)}</strong></span>
               <button className="lg-iconbtn" onClick={() => cart.remove(it.id)} aria-label="Eliminar">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>
               </button>
