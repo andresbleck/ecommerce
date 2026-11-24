@@ -51,7 +51,8 @@ export default function App() {
         </div>
       </div>
       <Header/>
-      <main className="lg-main">{page}</main>
+      {/* key = ruta: al cambiar de página se vuelve a montar y entra con fundido */}
+      <main className="lg-main lg-page-in" key={path}>{page}</main>
       <Footer/>
       <CartDrawer/>
       <MateChat/>

@@ -72,9 +72,34 @@ img { max-width: 100%; display: block; }
 .lg-cartbtn:hover { background: rgba(200, 162, 90, .22); }
 .lg-cartbtn__badge { position: absolute; top: -2px; right: -2px; background: var(--gold); color: var(--green-darkest); font-size: 11px; font-weight: 700; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid var(--green-darkest); }
 .lg-burger { display: none; flex-direction: column; gap: 4px; padding: 8px; }
-.lg-burger span { width: 22px; height: 2px; background: var(--cream); display: block; }
-.lg-mobile-menu { display: none; flex-direction: column; border-top: 1px solid rgba(200, 162, 90, .15); padding: 12px 32px 20px; }
-.lg-mobile-menu__link { padding: 12px 0; color: var(--cream); border-bottom: 1px solid rgba(200, 162, 90, .1); }
+.lg-burger span { width: 22px; height: 2px; background: var(--cream); display: block; transition: transform .3s ease, opacity .2s ease; }
+/* Hamburguesa → X (desplazamiento = alto 2px + gap 4px) */
+.lg-burger.is-open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.lg-burger.is-open span:nth-child(2) { opacity: 0; }
+.lg-burger.is-open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+/* Menú móvil: se despliega animando la altura (0fr → 1fr) y el fundido */
+.lg-mobile-menu { display: none; grid-template-rows: 0fr; opacity: 0; padding: 0 20px; border-top: 1px solid transparent; transition: grid-template-rows .3s ease, opacity .25s ease, padding .3s ease, border-color .3s ease; }
+.lg-mobile-menu.is-open { grid-template-rows: 1fr; opacity: 1; padding: 8px 20px 16px; border-top-color: rgba(200, 162, 90, .15); }
+.lg-mobile-menu__inner { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.lg-mobile-menu__link { padding: 12px 0; color: var(--cream); border-bottom: 1px solid rgba(200, 162, 90, .1); opacity: 0; transform: translateY(-8px); transition: opacity .25s ease, transform .25s ease, color .2s; }
+.lg-mobile-menu__link:last-child { border-bottom: 0; }
+.lg-mobile-menu__link.is-active { color: var(--gold); }
+.lg-mobile-menu.is-open .lg-mobile-menu__link { opacity: 1; transform: none; }
+/* Al abrir, los ítems entran escalonados; al cerrar salen todos juntos */
+.lg-mobile-menu.is-open .lg-mobile-menu__link:nth-child(2) { transition-delay: .04s; }
+.lg-mobile-menu.is-open .lg-mobile-menu__link:nth-child(3) { transition-delay: .08s; }
+.lg-mobile-menu.is-open .lg-mobile-menu__link:nth-child(4) { transition-delay: .12s; }
+.lg-mobile-menu.is-open .lg-mobile-menu__link:nth-child(5) { transition-delay: .16s; }
+
+/* Entrada suave de cada página al navegar */
+.lg-page-in { animation: lg-page-in .4s ease backwards; }
+@keyframes lg-page-in { from { opacity: 0; transform: translateY(10px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .lg-page-in { animation: none; }
+  .lg-mobile-menu, .lg-mobile-menu__link, .lg-burger span { transition: none; }
+}
 
 .lg-main { min-height: 60vh; }
 .lg-sec { padding: 96px 32px; position: relative; }
@@ -689,7 +714,7 @@ image-slot { --slot-placeholder-color: rgba(243, 232, 210, .55); --slot-border: 
   .lg-header__inner { padding: 14px 20px; grid-template-columns: 1fr auto; }
   .lg-nav { display: none; }
   .lg-burger { display: flex; }
-  .lg-mobile-menu { display: flex; }
+  .lg-mobile-menu { display: grid; }
   /* Grillas de productos en 2 columnas */
   .lg-grid--4, .lg-grid--3 { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   /* Tarjeta de producto: foto limpia arriba y, pegado debajo, un recuadro gris con el texto */

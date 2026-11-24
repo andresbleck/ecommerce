@@ -81,6 +81,14 @@ export function Header() {
     { to: '/nosotros', label: 'Nosotros' },
     { to: '/contacto', label: 'Contacto' },
   ];
+  // Desde el menú móvil: primero se cierra (animado) y después se navega
+  const MENU_ANIM_MS = 280;
+  const goFromMenu = (e, to) => {
+    e.preventDefault();
+    setOpen(false);
+    if (route === to) return;
+    setTimeout(() => navigate(to), MENU_ANIM_MS);
+  };
   return (
     <header className="lg-header">
       <div className="lg-header__inner">
@@ -108,18 +116,27 @@ export function Header() {
             </svg>
             {cart.count > 0 && <span className="lg-cartbtn__badge">{cart.count}</span>}
           </button>
-          <button className="lg-burger" onClick={() => setOpen(o => !o)} aria-label="Menú">
+          <button className={'lg-burger' + (open ? ' is-open' : '')} onClick={() => setOpen(o => !o)} aria-label={open ? 'Cerrar menú' : 'Abrir menú'} aria-expanded={open}>
             <span/><span/><span/>
           </button>
         </div>
       </div>
-      {open && (
-        <div className="lg-mobile-menu">
+      {/* Siempre montado para poder animar la apertura y el cierre */}
+      <div className={'lg-mobile-menu' + (open ? ' is-open' : '')} aria-hidden={!open}>
+        <div className="lg-mobile-menu__inner">
           {links.map(l => (
-            <Link key={l.to} to={l.to} onClick={() => setOpen(false)} className="lg-mobile-menu__link">{l.label}</Link>
+            <Link
+              key={l.to}
+              to={l.to}
+              tabIndex={open ? 0 : -1}
+              onClick={(e) => goFromMenu(e, l.to)}
+              className={'lg-mobile-menu__link' + (route === l.to ? ' is-active' : '')}
+            >
+              {l.label}
+            </Link>
           ))}
         </div>
-      )}
+      </div>
     </header>
   );
 }
