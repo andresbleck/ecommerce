@@ -101,9 +101,6 @@ export function Header() {
           ))}
         </nav>
         <div className="lg-header__actions">
-          <Link to="/admin" className="lg-header__admin" title="Admin">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1l3 6 6 .9-4.5 4.4 1 6.2-5.5-3-5.5 3 1-6.2L3 7.9 9 7z"/></svg>
-          </Link>
           <button className="lg-cartbtn" onClick={() => cart.setDrawer(true)} aria-label="Carrito">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 4h2l2.4 12.3a2 2 0 0 0 2 1.7h8.2a2 2 0 0 0 2-1.5L21 8H6"/>
@@ -121,7 +118,6 @@ export function Header() {
           {links.map(l => (
             <Link key={l.to} to={l.to} onClick={() => setOpen(false)} className="lg-mobile-menu__link">{l.label}</Link>
           ))}
-          <Link to="/admin" onClick={() => setOpen(false)} className="lg-mobile-menu__link">Admin</Link>
         </div>
       )}
     </header>

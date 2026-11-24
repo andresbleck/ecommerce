@@ -13,6 +13,8 @@ create table products (
   monogram text,
   accent_color text,
   image_url text,
+  image_url_2 text,
+  image_url_3 text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -31,22 +33,15 @@ create table orders (
   subtotal integer not null,
   shipping_cost integer not null default 0,
   total integer not null,
+  paid boolean not null default false,
   status text default 'pending' check (status in ('pending', 'paid', 'shipped', 'delivered', 'cancelled')),
   created_at timestamptz default now()
 );
 
--- RLS
-alter table products enable row level security;
-alter table orders enable row level security;
-
-create policy "Public read products" on products for select using (true);
-create policy "Auth insert products" on products for insert to authenticated with check (true);
-create policy "Auth update products" on products for update to authenticated using (true);
-create policy "Auth delete products" on products for delete to authenticated using (true);
-
-create policy "Anyone create orders" on orders for insert with check (true);
-create policy "Auth read orders" on orders for select to authenticated using (true);
-create policy "Auth update orders" on orders for update to authenticated using (true);
+-- RLS y permisos: NO definir policies acá.
+-- Ejecutar a continuación supabase/migrations/001_admin_security.sql
+-- (y luego 002_require_mfa.sql tras enrolar el MFA del admin).
+-- Solo los usuarios listados en public.admins pueden administrar.
 
 -- Seed
 insert into products (slug, name, category, price, stock, short_description, long_description, badge, monogram, accent_color) values

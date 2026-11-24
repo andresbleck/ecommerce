@@ -1,40 +1,120 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { sb } from '../lib/supabase';
 import { navigate, Link, ProductCard } from '../components/Components';
 import { useProducts, CATEGORIES, formatPrice } from '../data';
 
-export function AdminPage() {
-  const [session, setSession] = useState(null);
-  const [checking, setChecking] = useState(true);
+// ---------------------------------------------------------------------------
+// Seguridad del panel
+// La protección REAL está en Supabase (RLS + public.is_admin()). Estas
+// comprobaciones del frontend son defensa en profundidad y UX.
+// ---------------------------------------------------------------------------
 
-  useEffect(() => {
-    sb.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setChecking(false);
-    });
-    const { data: { subscription } } = sb.auth.onAuthStateChange((_, s) => setSession(s));
-    return () => subscription.unsubscribe();
-  }, []);
+const IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000; // 2 horas sin actividad → logout
+const ACTIVITY_KEY = 'lg_admin_last_activity';
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
-  if (checking) return <div className="lg-empty"><h3>Cargando...</h3></div>;
-  if (!session) return <AdminLogin/>;
-  return <AdminDashboard onLogout={async () => { await sb.auth.signOut(); navigate('/'); }}/>;
+const storage = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch { /* sin storage */ } },
+  del(k) { try { localStorage.removeItem(k); } catch { /* sin storage */ } },
+};
+
+// Muestra un mensaje genérico al usuario y deja el detalle solo en consola.
+function fail(userMsg, error) {
+  if (error) console.error(userMsg, error);
+  alert(userMsg);
 }
 
-function AdminLogin() {
-  const [email, setEmail] = useState('');
-  const [pass, setPass] = useState('');
-  const [err, setErr] = useState('');
-  const [loading, setLoading] = useState(false);
+// El link de recuperación vuelve a /?reset=1#/admin
+const isRecovery = () => new URLSearchParams(window.location.search).get('reset') === '1';
+const clearRecovery = () => {
+  const url = new URL(window.location.href);
+  url.searchParams.delete('reset');
+  window.history.replaceState(window.history.state, '', url.toString());
+};
 
-  const submit = async (e) => {
-    e.preventDefault();
-    setLoading(true); setErr('');
-    const { error } = await sb.auth.signInWithPassword({ email, password: pass });
-    setLoading(false);
-    if (error) setErr('Usuario o contraseña incorrectos.');
+// Determina en qué paso del acceso está el usuario.
+async function resolveStage(session) {
+  if (!session) return 'login';
+
+  const { data: aal, error: aalErr } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aalErr) { console.error(aalErr); return 'login'; }
+  if (aal.currentLevel !== 'aal2') {
+    // Con MFA activo, Supabase exige aal2 también para cambiar la contraseña.
+    if (aal.nextLevel === 'aal2') return 'mfa-verify';
+    return isRecovery() ? 'reset-password' : 'mfa-enroll';
+  }
+  if (isRecovery()) return 'reset-password';
+
+  const { data: isAdmin, error } = await sb.rpc('is_admin');
+  if (error || !isAdmin) {
+    if (error) console.error(error);
+    return 'forbidden';
+  }
+  return 'ok';
+}
+
+export function AdminPage() {
+  const [stage, setStage] = useState('loading');
+  const [notice, setNotice] = useState('');
+  const runId = useRef(0);
+
+  const evaluate = useCallback(async (session) => {
+    const id = ++runId.current;
+    const next = await resolveStage(session);
+    if (id !== runId.current) return; // llegó una evaluación más nueva
+
+    if (next === 'forbidden') {
+      setNotice('Esta cuenta no tiene permisos de administrador.');
+      storage.del(ACTIVITY_KEY);
+      await sb.auth.signOut();
+      setStage('login');
+      return;
+    }
+    setStage(next);
+  }, []);
+
+  useEffect(() => {
+    sb.auth.getSession().then(({ data }) => evaluate(data.session));
+    const { data: { subscription } } = sb.auth.onAuthStateChange((event, s) => {
+      if (event === 'INITIAL_SESSION') return; // ya cubierto por getSession
+      // No llamar a Supabase dentro del callback (puede bloquearse): diferir.
+      setTimeout(() => evaluate(s), 0);
+    });
+    return () => subscription.unsubscribe();
+  }, [evaluate]);
+
+  const logout = async (reason) => {
+    storage.del(ACTIVITY_KEY);
+    await sb.auth.signOut();
+    if (reason === 'idle') {
+      setNotice('Tu sesión se cerró por inactividad. Ingresá de nuevo.');
+      setStage('login');
+    } else {
+      navigate('/');
+    }
   };
 
+  const recheck = async () => {
+    const { data } = await sb.auth.getSession();
+    evaluate(data.session);
+  };
+
+  if (stage === 'loading') return <div className="lg-empty"><h3>Cargando...</h3></div>;
+  if (stage === 'login') return <AdminLogin notice={notice} onNotice={setNotice}/>;
+  if (stage === 'mfa-enroll') return <MfaEnroll onDone={recheck} onCancel={() => logout()}/>;
+  if (stage === 'mfa-verify') return <MfaVerify onDone={recheck} onCancel={() => logout()}/>;
+  if (stage === 'reset-password') return (
+    <ResetPassword
+      onDone={() => { clearRecovery(); setNotice(''); recheck(); }}
+      onCancel={() => { clearRecovery(); logout(); }}
+    />
+  );
+  return <AdminDashboard onLogout={() => logout()} onIdle={() => logout('idle')}/>;
+}
+
+function AuthShell({ pre, title, children }) {
   return (
     <section className="lg-login">
       <div className="lg-login__inner">
@@ -55,24 +135,313 @@ function AdminLogin() {
           </div>
         </div>
         <div className="lg-login__form">
-          <div className="lg-login__pre">Panel de administración</div>
-          <h1 className="lg-h2">Ingresá al taller digital</h1>
-          <p className="lg-lead">Solo administradores. Para volver a la tienda <Link to="/">hacé clic acá</Link>.</p>
-          <form onSubmit={submit} className="lg-form">
-            <label>Usuario<input required type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="admin@lagauchada.com"/></label>
-            <label>Contraseña<input required type="password" value={pass} onChange={e => setPass(e.target.value)} placeholder="••••••••"/></label>
-            {err && <div className="lg-form__err">{err}</div>}
-            <button className="lg-btn lg-btn--gold lg-btn--big lg-btn--block" disabled={loading}>
-              {loading ? 'Ingresando...' : 'Ingresar →'}
-            </button>
-          </form>
+          <div className="lg-login__pre">{pre}</div>
+          <h1 className="lg-h2">{title}</h1>
+          {children}
         </div>
       </div>
     </section>
   );
 }
 
-function AdminDashboard({ onLogout }) {
+function AdminLogin({ notice, onNotice }) {
+  const [email, setEmail] = useState('');
+  const [pass, setPass] = useState('');
+  const [err, setErr] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [forgot, setForgot] = useState(false);
+
+  if (forgot) return <ForgotPassword initialEmail={email} onBack={() => setForgot(false)}/>;
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setLoading(true); setErr(''); onNotice('');
+    const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+    setLoading(false);
+    if (error) { setErr('Usuario o contraseña incorrectos.'); return; }
+    setPass('');
+    storage.set(ACTIVITY_KEY, String(Date.now()));
+  };
+
+  return (
+    <AuthShell pre="Panel de administración" title="Ingresá al taller digital">
+      <p className="lg-lead">Solo administradores. Para volver a la tienda <Link to="/">hacé clic acá</Link>.</p>
+      <form onSubmit={submit} className="lg-form">
+        {notice && <div className="lg-form__err">{notice}</div>}
+        <label>Usuario<input required type="email" autoComplete="username" value={email} onChange={e => setEmail(e.target.value)} placeholder="admin@lagauchada.com"/></label>
+        <label>Contraseña<input required type="password" autoComplete="current-password" value={pass} onChange={e => setPass(e.target.value)} placeholder="••••••••"/></label>
+        {err && <div className="lg-form__err">{err}</div>}
+        <button className="lg-btn lg-btn--gold lg-btn--big lg-btn--block" disabled={loading}>
+          {loading ? 'Ingresando...' : 'Ingresar →'}
+        </button>
+        <button type="button" onClick={() => { setErr(''); onNotice(''); setForgot(true); }}
+          style={{ alignSelf: 'flex-start', fontSize: 14, color: 'var(--gold-deep)', borderBottom: '1px solid currentColor' }}>
+          ¿Olvidaste tu contraseña?
+        </button>
+      </form>
+    </AuthShell>
+  );
+}
+
+function ForgotPassword({ initialEmail, onBack }) {
+  const [email, setEmail] = useState(initialEmail || '');
+  const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/?reset=1#/admin`,
+    });
+    setLoading(false);
+    if (error) console.error(error);
+    // Mismo mensaje exista o no la cuenta (no revelar qué emails están registrados).
+    setSent(true);
+  };
+
+  return (
+    <AuthShell pre="Panel de administración" title="Recuperar contraseña">
+      {sent ? (
+        <div className="lg-form">
+          <p className="lg-lead">
+            Si el email corresponde a una cuenta, te enviamos un link para elegir una contraseña nueva.
+            Abrilo <strong>en este mismo navegador</strong> y usá solo el último email que recibas.
+          </p>
+          <button type="button" className="lg-btn lg-btn--ghost-dark lg-btn--block" onClick={onBack}>← Volver al ingreso</button>
+        </div>
+      ) : (
+        <form onSubmit={submit} className="lg-form">
+          <p className="lg-lead">Ingresá tu email y te mandamos un link para restablecerla.</p>
+          <label>Email<input required type="email" autoComplete="username" value={email} onChange={e => setEmail(e.target.value)}/></label>
+          <button className="lg-btn lg-btn--gold lg-btn--big lg-btn--block" disabled={loading}>
+            {loading ? 'Enviando...' : 'Enviar link →'}
+          </button>
+          <button type="button" className="lg-btn lg-btn--ghost-dark lg-btn--block" onClick={onBack}>← Volver</button>
+        </form>
+      )}
+    </AuthShell>
+  );
+}
+
+const PASSWORD_RULES = [
+  { test: p => p.length >= 12, label: 'Al menos 12 caracteres' },
+  { test: p => /[a-z]/.test(p), label: 'Una minúscula' },
+  { test: p => /[A-Z]/.test(p), label: 'Una mayúscula' },
+  { test: p => /[0-9]/.test(p), label: 'Un número' },
+];
+
+function ResetPassword({ onDone, onCancel }) {
+  const [pass, setPass] = useState('');
+  const [pass2, setPass2] = useState('');
+  const [err, setErr] = useState('');
+  const [loading, setLoading] = useState(false);
+  const valid = PASSWORD_RULES.every(r => r.test(pass)) && pass === pass2;
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!valid) return;
+    setLoading(true); setErr('');
+    const { error } = await sb.auth.updateUser({ password: pass });
+    setLoading(false);
+    if (error) {
+      console.error(error);
+      setErr(
+        error.code === 'same_password' ? 'La contraseña nueva tiene que ser distinta de la anterior.' :
+        error.code === 'weak_password' ? 'La contraseña no cumple los requisitos de seguridad.' :
+        'No se pudo cambiar la contraseña. Pedí un link nuevo e intentá otra vez.'
+      );
+      return;
+    }
+    setPass(''); setPass2('');
+    storage.set(ACTIVITY_KEY, String(Date.now()));
+    onDone();
+  };
+
+  return (
+    <AuthShell pre="Panel de administración" title="Elegí una contraseña nueva">
+      <form onSubmit={submit} className="lg-form">
+        <label>Contraseña nueva<input required type="password" autoComplete="new-password" value={pass} onChange={e => setPass(e.target.value)}/></label>
+        <label>Repetila<input required type="password" autoComplete="new-password" value={pass2} onChange={e => setPass2(e.target.value)}/></label>
+        <ul style={{ fontSize: 13, listStyle: 'none', padding: 0, margin: 0 }}>
+          {PASSWORD_RULES.map(r => (
+            <li key={r.label} style={{ color: r.test(pass) ? 'var(--gold-deep)' : 'var(--ink-mute)' }}>
+              {r.test(pass) ? '✓' : '·'} {r.label}
+            </li>
+          ))}
+          <li style={{ color: pass && pass === pass2 ? 'var(--gold-deep)' : 'var(--ink-mute)' }}>
+            {pass && pass === pass2 ? '✓' : '·'} Coinciden
+          </li>
+        </ul>
+        {err && <div className="lg-form__err">{err}</div>}
+        <button className="lg-btn lg-btn--gold lg-btn--big lg-btn--block" disabled={loading || !valid}>
+          {loading ? 'Guardando...' : 'Guardar contraseña →'}
+        </button>
+        <button type="button" className="lg-btn lg-btn--ghost-dark lg-btn--block" onClick={onCancel}>Cancelar</button>
+      </form>
+    </AuthShell>
+  );
+}
+
+function CodeInput({ value, onChange }) {
+  return (
+    <label>Código de 6 dígitos
+      <input
+        required autoFocus inputMode="numeric" autoComplete="one-time-code"
+        pattern="[0-9]{6}" maxLength="6" placeholder="123456"
+        value={value} onChange={e => onChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
+        style={{ letterSpacing: '.4em', fontSize: 20 }}
+      />
+    </label>
+  );
+}
+
+// Primer ingreso: registrar la app autenticadora (Google Authenticator, Authy, etc.)
+function MfaEnroll({ onDone, onCancel }) {
+  const [factor, setFactor] = useState(null);
+  const [code, setCode] = useState('');
+  const [err, setErr] = useState('');
+  const [loading, setLoading] = useState(false);
+  const started = useRef(false);
+
+  useEffect(() => {
+    if (started.current) return;
+    started.current = true;
+    (async () => {
+      // Limpia intentos de enrolamiento previos que no se completaron.
+      const { data: list } = await sb.auth.mfa.listFactors();
+      for (const f of (list?.all || [])) {
+        if (f.status === 'unverified') await sb.auth.mfa.unenroll({ factorId: f.id });
+      }
+      const { data, error } = await sb.auth.mfa.enroll({
+        factorType: 'totp',
+        friendlyName: 'Admin La Gauchada ' + new Date().toISOString().slice(0, 10),
+      });
+      if (error) { console.error(error); setErr('No se pudo iniciar la configuración de seguridad.'); return; }
+      setFactor({ id: data.id, qr: data.totp.qr_code, secret: data.totp.secret });
+    })();
+  }, []);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!factor) return;
+    setLoading(true); setErr('');
+    const { error } = await sb.auth.mfa.challengeAndVerify({ factorId: factor.id, code });
+    setLoading(false);
+    if (error) { console.error(error); setErr('Código incorrecto. Probá de nuevo.'); setCode(''); return; }
+    onDone();
+  };
+
+  return (
+    <AuthShell pre="Verificación en dos pasos" title="Configurá tu código de seguridad">
+      <p className="lg-lead">
+        Escaneá el QR con una app autenticadora (Google Authenticator, Authy, 1Password…) y cargá el código que te muestra.
+        Solo se pide al iniciar sesión.
+      </p>
+      <form onSubmit={submit} className="lg-form">
+        {factor ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
+            <img src={factor.qr} alt="Código QR para la app autenticadora" width="180" height="180" style={{ background: '#fff', padding: 8, borderRadius: 4 }}/>
+            <small style={{ color: 'var(--ink-mute)' }}>¿No podés escanear? Clave manual:</small>
+            <code style={{ wordBreak: 'break-all', fontSize: 13 }}>{factor.secret}</code>
+          </div>
+        ) : !err && <p>Generando código QR...</p>}
+        <CodeInput value={code} onChange={setCode}/>
+        {err && <div className="lg-form__err">{err}</div>}
+        <button className="lg-btn lg-btn--gold lg-btn--big lg-btn--block" disabled={loading || !factor || code.length !== 6}>
+          {loading ? 'Verificando...' : 'Activar y entrar →'}
+        </button>
+        <button type="button" className="lg-btn lg-btn--ghost-dark lg-btn--block" onClick={onCancel}>Cancelar</button>
+      </form>
+    </AuthShell>
+  );
+}
+
+// Ingresos siguientes: pedir el código de la app.
+function MfaVerify({ onDone, onCancel }) {
+  const [code, setCode] = useState('');
+  const [err, setErr] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setLoading(true); setErr('');
+    const { data: list, error: listErr } = await sb.auth.mfa.listFactors();
+    const factor = list?.totp?.[0];
+    if (listErr || !factor) {
+      setLoading(false);
+      console.error(listErr);
+      setErr('No se encontró el método de verificación.');
+      return;
+    }
+    const { error } = await sb.auth.mfa.challengeAndVerify({ factorId: factor.id, code });
+    setLoading(false);
+    if (error) { console.error(error); setErr('Código incorrecto o vencido. Probá con el actual.'); setCode(''); return; }
+    onDone();
+  };
+
+  return (
+    <AuthShell pre="Verificación en dos pasos" title="Ingresá tu código">
+      <p className="lg-lead">Abrí tu app autenticadora y cargá el código de 6 dígitos de La Gauchada.</p>
+      <form onSubmit={submit} className="lg-form">
+        <CodeInput value={code} onChange={setCode}/>
+        {err && <div className="lg-form__err">{err}</div>}
+        <button className="lg-btn lg-btn--gold lg-btn--big lg-btn--block" disabled={loading || code.length !== 6}>
+          {loading ? 'Verificando...' : 'Verificar →'}
+        </button>
+        <button type="button" className="lg-btn lg-btn--ghost-dark lg-btn--block" onClick={onCancel}>Cancelar</button>
+      </form>
+    </AuthShell>
+  );
+}
+
+// Cierra la sesión tras IDLE_TIMEOUT_MS sin actividad (compartido entre pestañas).
+function useIdleLogout(onIdle) {
+  const onIdleRef = useRef(onIdle);
+  onIdleRef.current = onIdle;
+
+  useEffect(() => {
+    const now = Date.now();
+    const stored = Number(storage.get(ACTIVITY_KEY)) || 0;
+    if (stored && now - stored > IDLE_TIMEOUT_MS) { onIdleRef.current(); return; }
+
+    let lastWrite = 0;
+    let expired = false;
+    const isExpired = () => {
+      const last = Math.max(lastWrite, Number(storage.get(ACTIVITY_KEY)) || 0);
+      return last > 0 && Date.now() - last > IDLE_TIMEOUT_MS;
+    };
+    const check = () => {
+      if (expired || !isExpired()) return;
+      expired = true;
+      onIdleRef.current();
+    };
+    const touch = () => {
+      const t = Date.now();
+      if (t - lastWrite < 15000) return; // no escribir en cada mousemove
+      check(); // ej.: volvés tras suspender la PC → primero vence, no renueva
+      if (expired) return;
+      lastWrite = t;
+      storage.set(ACTIVITY_KEY, String(t));
+    };
+    storage.set(ACTIVITY_KEY, String(now));
+    lastWrite = now;
+
+    const events = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'];
+    events.forEach(ev => window.addEventListener(ev, touch, { passive: true }));
+    const timer = setInterval(check, 60 * 1000);
+    document.addEventListener('visibilitychange', check);
+
+    return () => {
+      events.forEach(ev => window.removeEventListener(ev, touch));
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', check);
+    };
+  }, []);
+}
+
+function AdminDashboard({ onLogout, onIdle }) {
+  useIdleLogout(onIdle);
   const [tab, setTab] = useState('productos');
   const { products, loading, reload } = useProducts();
   const [showForm, setShowForm] = useState(false);
@@ -103,10 +472,10 @@ function AdminDashboard({ onLogout }) {
     };
     if (editing?._dbId) {
       const { error } = await sb.from('products').update(payload).eq('id', editing._dbId);
-      if (error) { alert('Error al guardar: ' + error.message); return; }
+      if (error) { fail('No se pudo guardar el producto.', error); return; }
     } else {
       const { error } = await sb.from('products').insert(payload);
-      if (error) { alert('Error al crear: ' + error.message); return; }
+      if (error) { fail('No se pudo crear el producto.', error); return; }
     }
     await reload();
     setShowForm(false);
@@ -116,7 +485,7 @@ function AdminDashboard({ onLogout }) {
   const remove = async (dbId) => {
     if (!confirm('¿Eliminar este producto?')) return;
     const { error } = await sb.from('products').delete().eq('id', dbId);
-    if (error) { alert('Error al eliminar: ' + error.message); return; }
+    if (error) { fail('No se pudo eliminar el producto.', error); return; }
     await reload();
   };
 
@@ -314,27 +683,12 @@ function AdminOrdersTab() {
   useEffect(() => { loadOrders(); }, []);
 
   const updateStatus = async (order, newStatus) => {
-    const prevStatus = order.status;
-    if (prevStatus === newStatus) return;
+    if (order.status === newStatus) return;
     setUpdating(order.id);
 
-    const { error } = await sb.from('orders').update({ status: newStatus }).eq('id', order.id);
-    if (error) { alert('Error al actualizar: ' + error.message); setUpdating(null); return; }
-
-    const items = order.items || [];
-    if (items.length > 0) {
-      if (newStatus === 'delivered' && prevStatus !== 'delivered') {
-        for (const item of items) {
-          const { data: p } = await sb.from('products').select('id, stock').eq('slug', item.id).single();
-          if (p) await sb.from('products').update({ stock: Math.max(0, p.stock - item.qty) }).eq('id', p.id);
-        }
-      } else if (newStatus === 'cancelled' && prevStatus === 'delivered') {
-        for (const item of items) {
-          const { data: p } = await sb.from('products').select('id, stock').eq('slug', item.id).single();
-          if (p) await sb.from('products').update({ stock: p.stock + item.qty }).eq('id', p.id);
-        }
-      }
-    }
+    // Estado + ajuste de stock en una sola transacción del lado del servidor.
+    const { error } = await sb.rpc('apply_order_status', { p_order_id: order.id, p_new_status: newStatus });
+    if (error) fail('No se pudo actualizar el pedido.', error);
 
     setUpdating(null);
     await loadOrders();
@@ -344,7 +698,7 @@ function AdminOrdersTab() {
     if (!confirm(`¿Seguro que querés eliminar el pedido #${order.order_number}?`)) return;
     setUpdating(order.id);
     const { error } = await sb.from('orders').delete().eq('id', order.id);
-    if (error) { alert('Error al eliminar: ' + error.message); }
+    if (error) fail('No se pudo eliminar el pedido.', error);
     setUpdating(null);
     await loadOrders();
   };
@@ -352,7 +706,7 @@ function AdminOrdersTab() {
   const togglePaid = async (order) => {
     setUpdating(order.id);
     const { error } = await sb.from('orders').update({ paid: !order.paid }).eq('id', order.id);
-    if (error) { alert('Error: ' + error.message); }
+    if (error) fail('No se pudo actualizar el pago.', error);
     setUpdating(null);
     await loadOrders();
   };
@@ -435,10 +789,14 @@ function ProductForm({ initial, onSave, onClose }) {
 
   const handleImageUpload = async (file, key) => {
     if (!file) return;
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) { fail('Formato no permitido. Usá JPG, PNG o WebP.'); return; }
+    if (file.size > MAX_IMAGE_BYTES) { fail('La imagen supera los 5 MB.'); return; }
     setUploading(key);
-    const fileName = `${Date.now()}-${file.name.replace(/[^a-z0-9.]/gi, '-')}`;
-    const { error } = await sb.storage.from('product-images').upload(fileName, file);
-    if (error) { alert('Error subiendo imagen: ' + error.message); setUploading(false); return; }
+    const ext = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[file.type];
+    const base = file.name.replace(/\.[^.]*$/, '').replace(/[^a-z0-9]+/gi, '-').slice(0, 60) || 'imagen';
+    const fileName = `${Date.now()}-${base}.${ext}`;
+    const { error } = await sb.storage.from('product-images').upload(fileName, file, { contentType: file.type });
+    if (error) { fail('No se pudo subir la imagen.', error); setUploading(false); return; }
     const { data: { publicUrl } } = sb.storage.from('product-images').getPublicUrl(fileName);
     set(key, publicUrl);
     setUploading(false);
@@ -478,7 +836,7 @@ function ProductForm({ initial, onSave, onClose }) {
                 { key: 'image_url_3', label: 'Foto 3 (opcional)' },
               ].map(({ key, label }) => (
                 <label key={key}>{label}
-                  <input type="file" accept="image/*" onChange={e => handleImageUpload(e.target.files[0], key)} disabled={uploading === key}/>
+                  <input type="file" accept="image/jpeg,image/png,image/webp"onChange={e => handleImageUpload(e.target.files[0], key)} disabled={uploading === key}/>
                   {uploading === key && <span style={{fontSize:12,color:'var(--ink-mute)'}}>Subiendo...</span>}
                   {data[key] && (
                     <div style={{position:'relative',display:'inline-block',marginTop:8}}>

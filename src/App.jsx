@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useRoute, Header, Footer, CartDrawer, Link, navigate } from './components/Components';
+import { useRoute, Header, Footer, CartDrawer, Link } from './components/Components';
 import { TweaksPanel, TweakSection, TweakRadio, useTweaks } from './components/TweaksPanel';
 import { HomePage } from './pages/Home';
 import { ProductsPage, ProductDetailPage } from './products';
@@ -23,7 +23,7 @@ export default function App() {
     return (
       <>
         <AdminPage/>
-        <TweaksUI t={t} setTweak={setTweak}/>
+        {import.meta.env.DEV && <TweaksUI t={t} setTweak={setTweak}/>}
       </>
     );
   }
@@ -55,7 +55,7 @@ export default function App() {
       <Footer/>
       <CartDrawer/>
       <MateChat/>
-      <TweaksUI t={t} setTweak={setTweak}/>
+      {import.meta.env.DEV && <TweaksUI t={t} setTweak={setTweak}/>}
     </>
   );
 }
@@ -90,10 +90,7 @@ function TweaksUI({ t, setTweak }) {
         />
       </TweakSection>
       <TweakSection label="Atajos">
-        <button className="lg-btn lg-btn--ghost-dark" style={{width:'100%'}} onClick={() => navigate('/admin')}>
-          → Ir al admin
-        </button>
-        <button className="lg-btn lg-btn--ghost-dark" style={{width:'100%', marginTop:8}} onClick={() => { localStorage.removeItem('lg_cart'); location.reload(); }}>
+        <button className="lg-btn lg-btn--ghost-dark" style={{width:'100%'}} onClick={() => { localStorage.removeItem('lg_cart'); location.reload(); }}>
           Reset (carrito)
         </button>
       </TweakSection>
