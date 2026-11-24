@@ -85,7 +85,18 @@ export function ProductsPage() {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
               <input placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)}/>
             </div>
-            <select className="lg-select" value={sort} onChange={e => setSort(e.target.value)}>
+            {/* Solo celular: reemplaza a los botones de categoría */}
+            <select className="lg-select lg-select--cat" value={cat} onChange={e => { setCat(e.target.value); setOpenGroup(null); }} aria-label="Categoría">
+              <option value="all">Todas ({products.length})</option>
+              {CATEGORY_GROUPS.map(g => (
+                <optgroup key={g.id} label={g.label}>
+                  {CATEGORIES.filter(c => c.group === g.id).map(c => (
+                    <option key={c.id} value={c.id}>{c.label} ({products.filter(p => p.category === c.id).length})</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+            <select className="lg-select lg-select--sort" value={sort} onChange={e => setSort(e.target.value)} aria-label="Ordenar">
               <option value="featured">Destacados</option>
               <option value="price-asc">Menor precio</option>
               <option value="price-desc">Mayor precio</option>

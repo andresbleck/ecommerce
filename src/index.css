@@ -257,6 +257,7 @@ img { max-width: 100%; display: block; }
 .lg-search { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border: 1px solid var(--line); background: var(--cream); color: var(--ink-mute); }
 .lg-search input { border: 0; outline: 0; background: transparent; font-family: var(--sans); font-size: 14px; color: var(--ink); width: 200px; }
 .lg-select { padding: 10px 14px; border: 1px solid var(--line); background: var(--cream); font-family: var(--sans); font-size: 14px; color: var(--ink); outline: 0; cursor: pointer; }
+.lg-select--cat { display: none; } /* solo se muestra en celular */
 .lg-empty { padding: 80px 32px; text-align: center; max-width: 500px; margin: 0 auto; }
 .lg-empty__icon { color: var(--gold-deep); margin-bottom: 24px; display: flex; justify-content: center; }
 .lg-empty h2, .lg-empty h3 { font-family: var(--serif); margin: 0 0 12px; }
@@ -822,6 +823,12 @@ image-slot { --slot-placeholder-color: rgba(243, 232, 210, .55); --slot-border: 
   .lg-admin__toolbar .lg-select { flex: 1; min-width: 120px; }
   .lg-admin__toolbar .lg-btn { margin-left: 0; width: 100%; justify-content: center; }
   .lg-search input { width: 100%; }
+  /* Catálogo: buscador a todo el ancho y debajo dos desplegables iguales (categoría + orden) */
+  .lg-toolbar { display: block; margin-bottom: 24px; }
+  .lg-chips { display: none; }
+  .lg-toolbar__right { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .lg-toolbar__right .lg-search { grid-column: 1 / -1; height: 44px; border-radius: 8px; }
+  .lg-toolbar__right .lg-select { display: block; width: 100%; min-width: 0; height: 44px; border-radius: 8px; }
   .lg-table th, .lg-table td { padding: 10px 10px; font-size: 13px; }
   .lg-table__sub { display: none; }
   /* Productos: ocultar stock en mobile */
