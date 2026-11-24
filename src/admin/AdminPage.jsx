@@ -114,6 +114,104 @@ export function AdminPage() {
   return <AdminDashboard onLogout={() => logout()} onIdle={() => logout('idle')}/>;
 }
 
+// Borde frondoso: recorre los puntos con muchas ondulaciones chicas e irregulares
+// (se ve como follaje y no como nubes). Determinista gracias a la semilla.
+function leafyPath(points, { closed = false, step = 7, amp = [1.5, 4], seed = 1 } = {}) {
+  let r = seed;
+  const rnd = () => (r = (r * 16807) % 2147483647) / 2147483647;
+  const pts = closed ? [...points, points[0]] : points;
+  let d = `M${pts[0][0]} ${pts[0][1]}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [x0, y0] = pts[i], [x1, y1] = pts[i + 1];
+    const dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy);
+    const n = Math.max(1, Math.round(len / step));
+    const nx = dy / len, ny = -dx / len; // normal hacia afuera (recorrido horario)
+    for (let k = 1; k <= n; k++) {
+      const ax = x0 + dx * (k - 1) / n, ay = y0 + dy * (k - 1) / n;
+      const bx = x0 + dx * k / n, by = y0 + dy * k / n;
+      const a = 2 * (amp[0] + rnd() * (amp[1] - amp[0]));
+      d += `Q${((ax + bx) / 2 + nx * a).toFixed(1)} ${((ay + by) / 2 + ny * a).toFixed(1)} ${bx.toFixed(1)} ${by.toFixed(1)}`;
+    }
+  }
+  return closed ? d + 'Z' : d;
+}
+
+// Copa alta y ancha, con ramas bajas que caen a los costados (silueta tipo roble añoso)
+const TREE_CANOPY = leafyPath([
+  [16, 172], [14, 160], [22, 148], [34, 138], [44, 126], [52, 110], [64, 96], [60, 80], [68, 64],
+  [84, 54], [98, 40], [116, 30], [134, 28], [150, 34], [164, 44], [176, 58], [180, 74], [190, 88],
+  [192, 104], [186, 118], [194, 130], [202, 144], [206, 158], [200, 170],
+  [190, 172], [178, 166], [166, 168], [156, 160], [146, 154], [136, 150], [124, 152], [112, 150],
+  [100, 150], [90, 154], [80, 158], [66, 160], [54, 166], [42, 164], [30, 172],
+], { closed: true, seed: 7 });
+
+const TREE_MASSES = [
+  [[40, 142], [60, 130], [84, 128]],
+  [[70, 104], [94, 94], [114, 98]],
+  [[96, 62], [112, 52], [128, 52]],
+  [[122, 74], [142, 66], [162, 72]],
+  [[132, 122], [156, 112], [180, 120]],
+  [[150, 96], [168, 92], [182, 98]],
+  [[56, 118], [72, 112]],
+].map((pts, i) => leafyPath(pts, { step: 6, amp: [1, 2.5], seed: 11 + i * 13 }));
+
+// Paisaje de llanura con un árbol añoso, en trazo fino
+function LlanuraArbol() {
+  return (
+    <svg viewBox="0 0 300 300" width="300" height="300" aria-hidden="true"
+      fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+      {/* sol bajo sobre el horizonte */}
+      <path d="M218 210a22 22 0 0 1 44 0" strokeWidth=".8" opacity=".6"/>
+      {[-50, -25, 0, 25, 50].map(a => {
+        const r = (a - 90) * Math.PI / 180;
+        const x1 = 240 + Math.cos(r) * 28, y1 = 210 + Math.sin(r) * 28;
+        const x2 = 240 + Math.cos(r) * 36, y2 = 210 + Math.sin(r) * 36;
+        return <line key={a} x1={x1} y1={y1} x2={x2} y2={y2} strokeWidth=".6" opacity=".4"/>;
+      })}
+
+      {/* pájaros */}
+      <path d="M224 116q5-5 10 0q5-5 10 0" strokeWidth=".7" opacity=".5"/>
+      <path d="M252 98q3.5-3.5 7 0q3.5-3.5 7 0" strokeWidth=".6" opacity=".4"/>
+
+      {/* ── árbol añoso ── */}
+      {/* ramas bajas, largas, que se abren a los costados */}
+      <path d="M104 180c-14-6-34-10-52-12-12-1-22 0-30-2" strokeWidth="1.3" opacity=".7"/>
+      <path d="M119 181c14-6 32-9 50-10 12-1 22-2 28-4" strokeWidth="1.3" opacity=".7"/>
+      {/* ramas que suben hacia la copa */}
+      <path d="M107 172c-4-12-10-22-20-32M114 170c2-12 6-22 14-32M111 170c0-10-1-18-3-26M104 176c-10-6-22-10-34-12M120 176c10-4 22-8 36-9"
+        strokeWidth=".7" opacity=".55"/>
+      {/* copa: silueta frondosa e irregular */}
+      <path d={TREE_CANOPY} strokeWidth=".8" opacity=".7"/>
+      {/* masas de follaje interiores */}
+      {TREE_MASSES.map((d, i) => <path key={i} d={d} strokeWidth=".5" opacity=".3"/>)}
+      {/* tronco recto y robusto */}
+      <path d="M100 212c3-8 4-18 4-30 0-6-2-10-6-14M124 212c-4-8-5-18-5-30 0-6 2-10 7-14" strokeWidth="1.1" opacity=".75"/>
+      <path d="M109 207c-1-10 1-20 0-28M115 205c1-8-1-16 0-24" strokeWidth=".5" opacity=".35"/>
+      <path d="M96 212c-4 1-8 1-12 2M128 212c4 1 8 1 12 2" strokeWidth=".6" opacity=".5"/>
+      {/* banco al pie del árbol */}
+      <path d="M130 200h14M130 205h14M131 205v6M143 205v6M131 200v5" strokeWidth=".6" opacity=".55"/>
+      <ellipse cx="112" cy="215" rx="72" ry="3.5" strokeWidth=".4" opacity=".22"/>
+
+      {/* alambrado a lo lejos */}
+      {[276, 286, 296].map(x => <line key={x} x1={x} y1="210" x2={x} y2="197" strokeWidth=".6" opacity=".5"/>)}
+      <path d="M272 201h26M272 205h26" strokeWidth=".4" opacity=".35"/>
+
+      {/* horizonte */}
+      <path d="M18 211c40-2 80 1 120-1s90 2 144 0" strokeWidth=".8" opacity=".6"/>
+
+      {/* pasto */}
+      {[30, 46, 70, 160, 176, 196, 212].map(x => (
+        <path key={x} d={`M${x} 211l-2-6M${x} 211v-7M${x} 211l3-5`} strokeWidth=".5" opacity=".4"/>
+      ))}
+
+      {/* surcos en perspectiva */}
+      <path d="M40 232h110M170 232h70" strokeWidth=".5" opacity=".3" strokeDasharray="4 6"/>
+      <path d="M70 252h160" strokeWidth=".5" opacity=".22" strokeDasharray="4 8"/>
+      <path d="M110 270h80" strokeWidth=".5" opacity=".15" strokeDasharray="4 10"/>
+    </svg>
+  );
+}
+
 function AuthShell({ pre, title, children }) {
   return (
     <section className="lg-login">
@@ -124,14 +222,10 @@ function AuthShell({ pre, title, children }) {
             <span className="lg-brand__big">Gauchada</span>
           </div>
           <div className="lg-login__quote">
-            <span className="lg-caveat">"El que no tiene mate,<br/>tiene que conseguir mate."</span>
+            <span className="lg-caveat">"Lo que empezó como un mate,<br/> hoy es tu negocio."</span>
           </div>
           <div className="lg-login__deco">
-            <svg viewBox="0 0 300 300" width="300" height="300" aria-hidden="true">
-              <circle cx="150" cy="150" r="120" fill="none" stroke="currentColor" strokeWidth=".4" opacity=".4"/>
-              <circle cx="150" cy="150" r="80" fill="none" stroke="currentColor" strokeWidth=".4" opacity=".4" strokeDasharray="3 6"/>
-              <circle cx="150" cy="150" r="40" fill="none" stroke="currentColor" strokeWidth=".4" opacity=".6"/>
-            </svg>
+            <LlanuraArbol/>
           </div>
         </div>
         <div className="lg-login__form">
