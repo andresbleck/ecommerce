@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react';
 import { useProducts, CATEGORIES, formatPrice } from '../data';
 import { Link, Section, Eyebrow, ProductCard, useCart } from '../components/Components';
 
@@ -27,9 +28,7 @@ export function HomePage({ heroVariant = 'editorial' }) {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
             </Link>
           </div>
-          <div className="lg-grid lg-grid--4">
-            {recent.map(p => <GlassCard key={p.id} p={p}/>)}
-          </div>
+          <RecentCarousel products={recent}/>
         </div>
       </section>
 
@@ -160,6 +159,73 @@ function HeroFullbleed() {
       </div>
       <div className="lg-hero-full__scroll">↓ &nbsp; Cebá despacio</div>
     </section>
+  );
+}
+
+// En escritorio es una grilla de 4; en celular (≤700px) pasa a carrusel
+// de a un producto que avanza solo cada 4 segundos y se puede deslizar.
+const MOBILE_QUERY = '(max-width: 700px)';
+const AUTOPLAY_MS = 4000;
+
+function RecentCarousel({ products }) {
+  const trackRef = useRef(null);
+  const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia(MOBILE_QUERY).matches);
+
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_QUERY);
+    const onChange = () => setIsMobile(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  const goTo = (i) => {
+    const track = trackRef.current;
+    const slide = track?.children[i];
+    if (!slide) return;
+    track.scrollTo({ left: slide.offsetLeft - track.firstElementChild.offsetLeft, behavior: 'smooth' });
+  };
+
+  // Se reprograma cada vez que cambia el slide, así un deslizamiento manual reinicia los 4s
+  useEffect(() => {
+    if (!isMobile || paused || products.length < 2) return;
+    const t = setTimeout(() => goTo((active + 1) % products.length), AUTOPLAY_MS);
+    return () => clearTimeout(t);
+  }, [active, paused, isMobile, products.length]);
+
+  const onScroll = () => {
+    const track = trackRef.current;
+    if (!track || track.children.length < 2) return;
+    const step = track.children[1].offsetLeft - track.children[0].offsetLeft;
+    const i = Math.round(track.scrollLeft / step);
+    if (i !== active) setActive(i);
+  };
+
+  return (
+    <>
+      <div
+        ref={trackRef}
+        className="lg-grid lg-grid--4 lg-carousel"
+        onScroll={isMobile ? onScroll : undefined}
+        onTouchStart={() => setPaused(true)}
+        onTouchEnd={() => setPaused(false)}
+      >
+        {products.map(p => <GlassCard key={p.id} p={p}/>)}
+      </div>
+      {products.length > 1 && (
+        <div className="lg-carousel__dots">
+          {products.map((p, i) => (
+            <button
+              key={p.id}
+              className={'lg-carousel__dot' + (i === active ? ' is-active' : '')}
+              onClick={() => goTo(i)}
+              aria-label={`Ver producto ${i + 1}`}
+            />
+          ))}
+        </div>
+      )}
+    </>
   );
 }
 

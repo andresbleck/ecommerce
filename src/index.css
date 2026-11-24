@@ -640,6 +640,9 @@ image-slot { --slot-placeholder-color: rgba(243, 232, 210, .55); --slot-border: 
 .lg-glass-card__add { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 7px 14px; border-radius: 6px; background: var(--gold); color: var(--green-darkest); border: none; cursor: pointer; transition: background .15s; }
 .lg-glass-card__add:hover { background: var(--gold-soft); }
 
+/* Carrusel de "Recién ingresados": solo se activa en celular (ver media 700px) */
+.lg-carousel__dots { display: none; }
+
 @media (max-width: 1100px) {
   .lg-grid--4 { grid-template-columns: repeat(2, 1fr); }
   .lg-grid--3 { grid-template-columns: repeat(2, 1fr); }
@@ -694,6 +697,19 @@ image-slot { --slot-placeholder-color: rgba(243, 232, 210, .55); --slot-border: 
   .lg-glass-card__foot { flex-direction: column; align-items: stretch; gap: 8px; margin-top: auto; padding-top: 6px; }
   .lg-glass-card__price { font-size: 17px; }
   .lg-glass-card__add { padding: 9px 8px; text-align: center; }
+  /* Recién ingresados: carrusel de a un producto */
+  .lg-carousel { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .lg-carousel::-webkit-scrollbar { display: none; }
+  .lg-carousel > .lg-glass-card { flex: 0 0 100%; scroll-snap-align: start; }
+  .lg-carousel > .lg-glass-card:hover { transform: none; }
+  .lg-carousel .lg-glass-card__body { padding: 14px 16px 16px; }
+  .lg-carousel .lg-glass-card__name { font-size: 20px; }
+  .lg-carousel .lg-glass-card__foot { flex-direction: row; align-items: center; justify-content: space-between; }
+  .lg-carousel .lg-glass-card__price { font-size: 20px; }
+  .lg-carousel .lg-glass-card__add { padding: 10px 20px; }
+  .lg-carousel__dots { display: flex; justify-content: center; gap: 8px; margin-top: 16px; }
+  .lg-carousel__dot { width: 8px; height: 8px; border-radius: 4px; padding: 0; background: rgba(243, 232, 210, .35); transition: width .25s, background .25s; }
+  .lg-carousel__dot.is-active { width: 24px; background: var(--gold); }
   .lg-fh { margin-bottom: 28px; }
   /* Categorías (home) más compactas, flecha centrada verticalmente */
   .lg-cat { padding: 24px 56px 24px 4px; }
